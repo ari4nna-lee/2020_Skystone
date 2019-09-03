@@ -21,8 +21,8 @@ public class MecanumOpMode extends LinearOpMode {
     @Override
     public void runOpMode() {
         double leftFrontSpeed;
-        double leftRearSpeed;
         double rightFrontSpeed;
+        double leftRearSpeed;
         double rightRearSpeed;
 
         rightFront = hardwareMap.dcMotor.get("rightFront");
@@ -41,21 +41,21 @@ public class MecanumOpMode extends LinearOpMode {
                 telemetry.update();
                 leftFrontSpeed = gamepad1.left_stick_y + gamepad1.left_stick_x;
                 telemetry.addData("Left Front Position", leftFront.getCurrentPosition());
-                leftRearSpeed = gamepad1.left_stick_y - gamepad1.left_stick_x;
+                rightFrontSpeed = gamepad1.left_stick_y - gamepad1.left_stick_x;
                 telemetry.addData("Right Front Position", rightFront.getCurrentPosition());
-                rightFrontSpeed = gamepad1.right_stick_y + gamepad1.right_stick_x;
+                leftRearSpeed = gamepad1.right_stick_y + gamepad1.right_stick_x;
                 telemetry.addData("Left Back Position", leftBack.getCurrentPosition());
                 rightRearSpeed = gamepad1.right_stick_y - gamepad1.right_stick_x;
                 telemetry.addData("Right Back Position", rightBack.getCurrentPosition());
                 // clip the right/left values so they never exceced +/- 1
                 leftFrontSpeed = Range.clip(leftFrontSpeed, -1, 1);
-                leftRearSpeed = Range.clip(leftRearSpeed, -1, 1);
                 rightFrontSpeed = Range.clip(rightFrontSpeed, -1, 1);
+                leftRearSpeed = Range.clip(leftRearSpeed, -1, 1);
                 rightRearSpeed = Range.clip(rightRearSpeed, -1, 1);
                 // Write the values to the motors
                 leftFront.setPower(leftFrontSpeed);
-                rightFront.setPower(leftRearSpeed);
-                leftBack.setPower(rightFrontSpeed);
+                rightFront.setPower(rightFrontSpeed);
+                leftBack.setPower(leftRearSpeed);
                 rightBack.setPower(rightRearSpeed);
                 telemetry.update();
             }
