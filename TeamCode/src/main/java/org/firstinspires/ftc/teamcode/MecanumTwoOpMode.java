@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
-@TeleOp(name = "MecaTestTwoOpMode (Studio)", group = "")
+@TeleOp(name = "MecanumTwoOpMode (Studio)", group = "")
 public class MecanumTwoOpMode extends LinearOpMode {
 
     private DcMotor rightFront;
@@ -37,9 +37,9 @@ public class MecanumTwoOpMode extends LinearOpMode {
             while (opModeIsActive()) {
                 // Put loop blocks here.
 
-                double r = Math.hypot(gamepad1.left_stick_x, gamepad1.left_stick_y);
-                double robotAngle = Math.atan2(gamepad1.left_stick_y, gamepad1.left_stick_x) - Math.PI / 4;
-                double rightX = gamepad1.right_stick_x;
+                double r = Math.hypot(gamepad1.left_stick_x * -1, gamepad1.left_stick_y);
+                double robotAngle = Math.atan2(gamepad1.left_stick_y, gamepad1.left_stick_x * -1) - Math.PI / 4;
+                double rightX = gamepad1.right_stick_x * -1;
 
                 double lFront = r * Math.cos(robotAngle) + rightX;
                 double rFront = r * Math.sin(robotAngle) - rightX;
