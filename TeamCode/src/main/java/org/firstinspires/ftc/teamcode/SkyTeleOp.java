@@ -19,6 +19,8 @@ public class SkyTeleOp extends LinearOpMode {
     private DcMotor rightInduction;
     private Servo hookLeft;
     private Servo hookRight;
+    private DcMotor swing;
+    private DcMotor extend;
     /**
      * This function is executed when this Op Mode is selected from the Driver Station.
      */
@@ -33,6 +35,8 @@ public class SkyTeleOp extends LinearOpMode {
         rightInduction = hardwareMap.dcMotor.get("rightInduction");
         hookLeft = hardwareMap.servo.get("hookLeft");
         hookRight = hardwareMap.servo.get("hookRight");
+        swing = hardwareMap.dcMotor.get("swing");
+        extend = hardwareMap.dcMotor.get("extend");
         // Put initialization blocks here.
 
         waitForStart();
@@ -40,7 +44,12 @@ public class SkyTeleOp extends LinearOpMode {
             rightFront.setDirection(DcMotorSimple.Direction.REVERSE);
             rightBack.setDirection(DcMotorSimple.Direction.REVERSE);
             rightInduction.setDirection(DcMotorSimple.Direction.REVERSE);
+            swing.setDirection(DcMotorSimple.Direction.REVERSE);
+            extend.setDirection(DcMotorSimple.Direction.REVERSE);
             hookLeft.setDirection(Servo.Direction.REVERSE);
+            swing.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            extend.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
             // Put run blocks here.
 
             while (opModeIsActive()) {
@@ -81,11 +90,30 @@ public class SkyTeleOp extends LinearOpMode {
                     hookRight.setPosition(-1);
                 } else {
                     // do nothing
+                }
+
+                //Arm Movement
+                if (gamepad2.left_stick_y > 0) {
+                    swing.setPower(0.7);
+                } else if (gamepad2.left_stick_y < 0) {
+                    swing.setPower(-0.7);
+                } else {
+                    swing.setPower(0);
+                }
+                if (gamepad2.left_stick_x > 0) {
+                    extend.setPower(0.7);
+                } else if (gamepad2.left_stick_x < 0) {
+                    extend.setPower(-0.7);
+                } else {
+                    extend.setPower(0);
+                }
+
+
                }
             }
         }
     }
-}
+
 
 
 
