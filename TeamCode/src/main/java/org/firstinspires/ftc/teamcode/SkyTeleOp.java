@@ -72,16 +72,17 @@ public class SkyTeleOp extends LinearOpMode {
                 telemetry.addData("rightRear", rRear);
 
                 //Intake System
-                if (gamepad1.dpad_up) {
+                if (gamepad1.dpad_down) {
                     leftInduction.setPower(0.8);
                     rightInduction.setPower(0.8);
-                } else if (gamepad1.dpad_down) {
+                } else if (gamepad1.dpad_up) {
                     leftInduction.setPower(-0.8);
                     rightInduction.setPower(-0.8);
                 } else {
                     leftInduction.setPower(0);
                     rightInduction.setPower(0);
                 }
+                //Hooks
                 if (gamepad1.a) {
                     hookLeft.setPosition(1);
                     hookRight.setPosition(1);
