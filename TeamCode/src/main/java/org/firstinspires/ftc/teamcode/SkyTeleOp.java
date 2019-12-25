@@ -91,10 +91,6 @@ public class SkyTeleOp extends LinearOpMode {
                 rightFront.setPower(rFront);
                 leftBack.setPower(lRear);
                 rightBack.setPower(rRear);
-               //telemetry.addData("leftFront", lFront);
-                //telemetry.addData("rightFront", rFront);
-                //telemetry.addData("leftRear", lRear);
-                //telemetry.addData("rightRear", rRear);
 
                 //Intake System
                 if (gamepad1.dpad_down) {
@@ -159,8 +155,19 @@ public class SkyTeleOp extends LinearOpMode {
                 //Arm Servos (Yaw, Grabber, Pitch)
 
                 if (gamepad2.a) {
+                    swing.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                    swing.setPower(0.4);
+                    // move the arm to horizontal position
+                    swing.setTargetPosition(900);
+                    while(swing.isBusy() && !isStopRequested()) {
+                        sleep(50);
+                        pitch.setPosition(0.8 - (swing.getCurrentPosition() - initialPosition) / 7500.0);
+                    }
+                    swing.setPower(0);
+                    swing.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
                     pitch.setPosition(0.75);
-                    while (!(yaw.getPosition() == 1)) {
+                    while (!(yaw.getPosition() == 1) && !isStopRequested()) {
                         yaw.setPosition(yaw.getPosition() + 0.02);
                         sleep(50);
                         telemetry.update();
