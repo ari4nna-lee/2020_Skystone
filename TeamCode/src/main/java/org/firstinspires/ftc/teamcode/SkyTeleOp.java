@@ -69,15 +69,15 @@ public class SkyTeleOp extends LinearOpMode {
 
             // Put run blocks here.
             yaw.setPosition(0);
-            armGrabber.setPosition(1);
-            pitch.setPosition(0.75);
+            armGrabber.setPosition(0.1839);
+            pitch.setPosition(0.72);
             push.setPosition(0.5);
 
 
             while (opModeIsActive() || !isStopRequested()) {
                 float swingSpeed = gamepad2.left_stick_y;
                 float extendSpeed = gamepad2.right_stick_y;
-                telemetry.addData("YAW", yaw.getPosition());
+
                 // Mecanum Drive
                 double r = Math.hypot(gamepad1.left_stick_x * -1, gamepad1.left_stick_y);
                 double robotAngle = Math.atan2(gamepad1.left_stick_y, gamepad1.left_stick_x * -1) - Math.PI / 4;
@@ -91,10 +91,10 @@ public class SkyTeleOp extends LinearOpMode {
                 rightFront.setPower(rFront);
                 leftBack.setPower(lRear);
                 rightBack.setPower(rRear);
-                telemetry.addData("leftFront", lFront);
-                telemetry.addData("rightFront", rFront);
-                telemetry.addData("leftRear", lRear);
-                telemetry.addData("rightRear", rRear);
+               //telemetry.addData("leftFront", lFront);
+                //telemetry.addData("rightFront", rFront);
+                //telemetry.addData("leftRear", lRear);
+                //telemetry.addData("rightRear", rRear);
 
                 //Intake System
                 if (gamepad1.dpad_down) {
@@ -134,6 +134,8 @@ public class SkyTeleOp extends LinearOpMode {
                 if (swingSpeed > 0) {
                     if (switch_TouchSensor.isPressed()) {
                         swing.setPower(0);
+                        pitch.setPosition(0.72);
+                        armGrabber.setPosition(0.1839);
                     } else {
                         pitch.setPosition(0.8 - (swing.getCurrentPosition() - initialPosition) / 7500.0);
                         swing.setPower(swingSpeed * -0.8);
@@ -161,30 +163,29 @@ public class SkyTeleOp extends LinearOpMode {
                         yaw.setPosition(yaw.getPosition() - 0.02);
                         sleep(50);
                         telemetry.addData("YAW", yaw.getPosition());
-                        telemetry.update();
-
-                        if (gamepad2.dpad_left) {
-                            armGrabber.setPosition(armGrabber.getPosition() + 0.005);
-                        }
-                        if (gamepad2.dpad_right) {
-                            armGrabber.setPosition(armGrabber.getPosition() - 0.005);
-                        }
-
-                        if (gamepad2.dpad_down) {
-                            pitch.setPosition(pitch.getPosition() + 0.005);
-                        }
-                        if (gamepad2.dpad_up) {
-                            pitch.setPosition(pitch.getPosition() - 0.005);
-                        }
-
-
                     }
+                }
+                telemetry.update();
+                if (gamepad2.dpad_left) {
+                    armGrabber.setPosition(armGrabber.getPosition() + 0.005);
+                }
+                if (gamepad2.dpad_right) {
+                    armGrabber.setPosition(armGrabber.getPosition() - 0.005);
+                }
+
+                if (gamepad2.dpad_down) {
+                    pitch.setPosition(pitch.getPosition() + 0.005);
+                }
+                if (gamepad2.dpad_up) {
+                    pitch.setPosition(pitch.getPosition() - 0.005);
                 }
                 telemetry.addData("push", push.getPosition());
                 telemetry.addData("Left Joy value", gamepad2.left_stick_y);
                 telemetry.addData("Swing", swing.getCurrentPosition());
                 telemetry.addData("extend", extend.getCurrentPosition());
                 telemetry.addData("pitch", pitch.getPosition());
+                telemetry.addData("arm grabber", armGrabber.getPosition());
+                telemetry.addData("YAW", yaw.getPosition());
                 telemetry.update();
             }
         }
