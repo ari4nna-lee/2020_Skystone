@@ -71,7 +71,7 @@ public class SkyTeleOp extends LinearOpMode {
             yaw.setPosition(0);
             armGrabber.setPosition(0.1839);
             pitch.setPosition(0.72);
-            push.setPosition(0.5);
+            push.setPosition(1);
 
 
             while (opModeIsActive() || !isStopRequested()) {
@@ -137,11 +137,19 @@ public class SkyTeleOp extends LinearOpMode {
                         pitch.setPosition(0.72);
                         armGrabber.setPosition(0.1839);
                     } else {
-                        pitch.setPosition(0.8 - (swing.getCurrentPosition() - initialPosition) / 7500.0);
+                        if (yaw.getPosition() > 0.9){
+                            pitch.setPosition(0.62 +(swing.getCurrentPosition() - initialPosition) / 7500.0);
+                        } else {
+                            pitch.setPosition(0.8 - (swing.getCurrentPosition() - initialPosition) / 7500.0);
+                        }
                         swing.setPower(swingSpeed * -0.8);
                     }
                 } else if (swingSpeed < 0) {
-                    pitch.setPosition(0.8 - (swing.getCurrentPosition() - initialPosition) / 7500.0);
+                    if (yaw.getPosition() > 0.9){
+                        pitch.setPosition(0.62 + (swing.getCurrentPosition() - initialPosition) / 7500.0);
+                    } else {
+                        pitch.setPosition(0.8 - (swing.getCurrentPosition() - initialPosition) / 7500.0);
+                    }
                     swing.setPower(swingSpeed * -0.8);
                 } else {
                     swing.setPower(0);
@@ -151,10 +159,10 @@ public class SkyTeleOp extends LinearOpMode {
                 //Arm Servos (Yaw, Grabber, Pitch)
 
                 if (gamepad2.a) {
+                    pitch.setPosition(0.75);
                     while (!(yaw.getPosition() == 1)) {
                         yaw.setPosition(yaw.getPosition() + 0.02);
                         sleep(50);
-                        telemetry.addData("YAW", yaw.getPosition());
                         telemetry.update();
                     }
                 }
@@ -162,8 +170,11 @@ public class SkyTeleOp extends LinearOpMode {
                     while (!(yaw.getPosition() == 0)) {
                         yaw.setPosition(yaw.getPosition() - 0.02);
                         sleep(50);
-                        telemetry.addData("YAW", yaw.getPosition());
                     }
+                }
+                if (gamepad2.x) {
+                    pitch.setPosition(0.82);
+                    armGrabber.setPosition(0.013);
                 }
                 telemetry.update();
                 if (gamepad2.dpad_left) {
@@ -185,7 +196,7 @@ public class SkyTeleOp extends LinearOpMode {
                 telemetry.addData("extend", extend.getCurrentPosition());
                 telemetry.addData("pitch", pitch.getPosition());
                 telemetry.addData("arm grabber", armGrabber.getPosition());
-                telemetry.addData("YAW", yaw.getPosition());
+                telemetry.addData("yaw", yaw.getPosition());
                 telemetry.update();
             }
         }
