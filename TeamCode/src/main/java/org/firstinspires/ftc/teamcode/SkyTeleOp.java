@@ -1,16 +1,18 @@
 package org.firstinspires.ftc.teamcode;
 
-
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
-import com.qualcomm.robotcore.util.Range;
 
 @TeleOp(name = "SkyTeleOp (Studio)", group = "")
 public class SkyTeleOp extends LinearOpMode {
+
+    private final double SWING_POS_DIVISOR = 9000.0;
+    private final double PITCH_LEFT_POS = 0.75;
+    private final double PITCH_RIGHT_POS = 0.62;
 
     private DcMotor rightFront;
     private DcMotor rightBack;
@@ -58,6 +60,7 @@ public class SkyTeleOp extends LinearOpMode {
             rightInduction.setDirection(DcMotorSimple.Direction.REVERSE);
 
             swing.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            extend.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             swing.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             swing.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             swing.setDirection(DcMotorSimple.Direction.FORWARD);
@@ -93,10 +96,10 @@ public class SkyTeleOp extends LinearOpMode {
                 rightBack.setPower(rRear);
 
                 //Intake System
-                if (gamepad1.dpad_down) {
+                if (gamepad1.right_bumper) {
                     leftInduction.setPower(0.8);
                     rightInduction.setPower(0.8);
-                } else if (gamepad1.dpad_up) {
+                } else if (gamepad1.right_trigger > 0) {
                     leftInduction.setPower(-0.8);
                     rightInduction.setPower(-0.8);
                     if (push.getPosition() != 1.0) {
@@ -134,39 +137,39 @@ public class SkyTeleOp extends LinearOpMode {
                         armGrabber.setPosition(0.1839);
                     } else {
                         if (yaw.getPosition() > 0.9){
-                            pitch.setPosition(0.62 +(swing.getCurrentPosition() - initialPosition) / 7500.0);
+                            pitch.setPosition(PITCH_RIGHT_POS +(swing.getCurrentPosition() - initialPosition) / SWING_POS_DIVISOR);
                         } else {
-                            pitch.setPosition(0.8 - (swing.getCurrentPosition() - initialPosition) / 7500.0);
+                            pitch.setPosition(PITCH_LEFT_POS - (swing.getCurrentPosition() - initialPosition) / SWING_POS_DIVISOR);
                         }
-                        swing.setPower(swingSpeed * -0.8);
+                        swing.setPower(swingSpeed * -0.45);
                     }
                 } else if (swingSpeed < 0) {
                     if (yaw.getPosition() > 0.9){
-                        pitch.setPosition(0.62 + (swing.getCurrentPosition() - initialPosition) / 7500.0);
+                        pitch.setPosition(PITCH_RIGHT_POS + (swing.getCurrentPosition() - initialPosition) / SWING_POS_DIVISOR);
                     } else {
-                        pitch.setPosition(0.8 - (swing.getCurrentPosition() - initialPosition) / 7500.0);
+                        pitch.setPosition(PITCH_LEFT_POS - (swing.getCurrentPosition() - initialPosition) / SWING_POS_DIVISOR);
                     }
-                    swing.setPower(swingSpeed * -0.8);
+                    swing.setPower(swingSpeed * -0.45);
                 } else {
                     swing.setPower(0);
                 }
 
-                extend.setPower(extendSpeed);
+                extend.setPower(extendSpeed * 0.5);
                 //Arm Servos (Yaw, Grabber, Pitch)
 
                 if (gamepad2.a) {
                     swing.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                     swing.setPower(0.4);
                     // move the arm to horizontal position
-                    swing.setTargetPosition(900);
+                    swing.setTargetPosition(1000);
                     while(swing.isBusy() && !isStopRequested()) {
                         sleep(50);
-                        pitch.setPosition(0.8 - (swing.getCurrentPosition() - initialPosition) / 7500.0);
+                        pitch.setPosition(PITCH_LEFT_POS - (swing.getCurrentPosition() - initialPosition) / SWING_POS_DIVISOR);
                     }
                     swing.setPower(0);
                     swing.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-                    pitch.setPosition(0.75);
+                    pitch.setPosition(0.69);
                     while (!(yaw.getPosition() == 1) && !isStopRequested()) {
                         yaw.setPosition(yaw.getPosition() + 0.02);
                         sleep(50);
