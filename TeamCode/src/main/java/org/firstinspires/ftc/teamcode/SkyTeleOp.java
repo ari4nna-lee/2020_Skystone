@@ -55,8 +55,8 @@ public class SkyTeleOp extends LinearOpMode {
 
         waitForStart();
         if (opModeIsActive()) {
-            rightFront.setDirection(DcMotorSimple.Direction.REVERSE);
-            rightBack.setDirection(DcMotorSimple.Direction.REVERSE);
+            leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
+            leftBack.setDirection(DcMotorSimple.Direction.REVERSE);
             rightInduction.setDirection(DcMotorSimple.Direction.REVERSE);
 
             swing.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -82,9 +82,9 @@ public class SkyTeleOp extends LinearOpMode {
                 float extendSpeed = gamepad2.right_stick_y;
 
                 // Mecanum Drive
-                double r = Math.hypot(gamepad1.left_stick_x * -1, gamepad1.left_stick_y);
-                double robotAngle = Math.atan2(gamepad1.left_stick_y, gamepad1.left_stick_x * -1) - Math.PI / 4;
-                double rightX = gamepad1.right_stick_x * -1;
+                double r = Math.hypot(gamepad1.left_stick_x, gamepad1.left_stick_y * -1);
+                double robotAngle = Math.atan2(gamepad1.left_stick_y * -1, gamepad1.left_stick_x) - Math.PI / 4;
+                double rightX = gamepad1.right_stick_x;
 
                 double lFront = r * Math.cos(robotAngle) + rightX;
                 double rFront = r * Math.sin(robotAngle) - rightX;
