@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.util.Range;
 
 ;
 
@@ -17,11 +18,11 @@ public class MyOdometryOpmode extends LinearOpMode {
     //Odometry Wheels
     DcMotor verticalLeft, verticalRight, horizontal;
 
-    final double COUNTS_PER_INCH = 307.699557;
+    final double COUNTS_PER_INCH = 306.382254;
 
     //Hardware Map Names for drive motors and odometry wheels. THIS WILL CHANGE ON EACH ROBOT, YOU NEED TO UPDATE THESE VALUES ACCORDINGLY
-    String rfName = "rf", rbName = "rb", lfName = "lf", lbName = "lb";
-    String verticalLeftEncoderName = rbName, verticalRightEncoderName = lfName, horizontalEncoderName = rfName;
+    String rfName = "rightFront", rbName = "rightBack", lfName = "leftFront", lbName = "leftBack";
+    String verticalLeftEncoderName = lfName, verticalRightEncoderName = rfName, horizontalEncoderName = lbName;
 
     OdometryGlobalCoordinatePosition globalPositionUpdate;
 
@@ -39,8 +40,18 @@ public class MyOdometryOpmode extends LinearOpMode {
         Thread positionThread = new Thread(globalPositionUpdate);
         positionThread.start();
 
-        globalPositionUpdate.reverseRightEncoder();
+        // globalPositionUpdate.reverseRightEncoder();
         globalPositionUpdate.reverseNormalEncoder();
+
+        goToPosition(0*COUNTS_PER_INCH, 24*COUNTS_PER_INCH, 0.5, 0, 1*COUNTS_PER_INCH);
+        goToPosition(24*COUNTS_PER_INCH, 24*COUNTS_PER_INCH, 0.5, 0, 1*COUNTS_PER_INCH);
+        goToPosition( 0*COUNTS_PER_INCH, 0*COUNTS_PER_INCH, 0.5, 0, 1*COUNTS_PER_INCH);
+        //rotate(90, 0.5, 5);
+
+        left_front.setPower(0);
+        right_front.setPower(0);
+        left_back.setPower(0);
+        right_back.setPower(0);
 
         while(opModeIsActive()){
             //Display Global (x, y, theta) coordinates
@@ -60,6 +71,81 @@ public class MyOdometryOpmode extends LinearOpMode {
         globalPositionUpdate.stop();
 
     }
+
+    private void goToPosition(double targetXPosition, double targetYPosition, double robotPower, double desiredRobotOrientation, double allowableDistanceError) {
+        double distanceToXTarget = targetXPosition - globalPositionUpdate.returnXCoordinate();
+        double distanceToYTarget = targetYPosition - globalPositionUpdate.returnYCoordinate();
+
+        double distance  = Math.hypot(distanceToXTarget, distanceToYTarget);
+
+        while (opModeIsActive() && !isStopRequested() && (distance > allowableDistanceError)) {
+            distanceToXTarget = targetXPosition - globalPositionUpdate.returnXCoordinate();
+            distanceToYTarget = targetYPosition - globalPositionUpdate.returnYCoordinate();
+
+            distance  = Math.hypot(distanceToXTarget, distanceToYTarget);
+
+            double robotMovementAngle = Math.toDegrees(Math.atan2(distanceToXTarget, distanceToYTarget));
+
+            double robotMovementXComponent = calculateX(robotMovementAngle, robotPower);
+            double robotMovementYComponent = calculateY(robotMovementAngle, robotPower);
+            double pivotCorrection = desiredRobotOrientation - globalPositionUpdate.returnOrientation();
+
+            drive(robotMovementYComponent, robotMovementXComponent, pivotCorrection);
+
+            telemetry.addData("Distance to target", distance);
+            telemetry.addData("Allowable Error", allowableDistanceError);
+
+            telemetry.addData("X Position", globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH);
+            telemetry.addData("Y Position", globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH);
+            telemetry.addData("Orientation (Degrees)", globalPositionUpdate.returnOrientation());
+
+            telemetry.addData("Vertical left encoder position", verticalLeft.getCurrentPosition());
+            telemetry.addData("Vertical right encoder position", verticalRight.getCurrentPosition());
+            telemetry.addData("horizontal encoder position", horizontal.getCurrentPosition());
+
+            telemetry.update();
+        }
+    }
+    private void rotate(double targetAngle, double robotPower, double allowableAngleError) {
+        double currentAngle = globalPositionUpdate.returnOrientation();
+
+        double angleError = targetAngle - currentAngle;
+
+        while (opModeIsActive() && !isStopRequested() && (angleError > allowableAngleError)){
+            currentAngle = globalPositionUpdate.returnOrientation();
+            angleError = targetAngle - currentAngle;
+
+            while (!(angleError <= allowableAngleError || isStopRequested()) ) {
+                drive(0, 0, robotPower);
+
+                telemetry.addData("Distance to Desired Angle", angleError);
+                telemetry.addData("Allowable Error",allowableAngleError);
+
+                telemetry.addData("Orientation", globalPositionUpdate.returnOrientation());
+            }
+            drive(0, 0, 0);
+        }
+
+    }
+
+    private void drive(double y, double x, double rot) {
+        double r = Math.hypot(x, y);
+        double robotAngle = Math.atan2(y, x) - Math.PI / 4;
+        double rightX = Range.clip(rot / 10.0, -0.5, 0.5);
+
+        telemetry.addData("RAW Rot", rot);
+        telemetry.addData("Control rightX", rightX);
+
+        double lFront = r * Math.cos(robotAngle) + rightX;
+        double rFront = r * Math.sin(robotAngle) - rightX;
+        double lRear = r * Math.sin(robotAngle) + rightX;
+        double rRear = r * Math.cos(robotAngle) - rightX;
+        left_front.setPower(lFront);
+        right_front.setPower(rFront);
+        left_back.setPower(lRear);
+        right_back.setPower(rRear);
+    }
+
 
     private void initDriveHardwareMap(String rfName, String rbName, String lfName, String lbName, String vlEncoderName, String vrEncoderName, String hEncoderName){
         right_front = hardwareMap.dcMotor.get(rfName);
@@ -85,6 +171,10 @@ public class MyOdometryOpmode extends LinearOpMode {
         verticalRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         horizontal.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
+        left_front.setDirection(DcMotorSimple.Direction.REVERSE);
+        right_front.setDirection(DcMotorSimple.Direction.FORWARD);
+        left_back.setDirection(DcMotorSimple.Direction.REVERSE);
+
         verticalLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         verticalRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         horizontal.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -95,9 +185,6 @@ public class MyOdometryOpmode extends LinearOpMode {
         left_front.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         left_back.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        left_front.setDirection(DcMotorSimple.Direction.REVERSE);
-        right_front.setDirection(DcMotorSimple.Direction.REVERSE);
-        right_back.setDirection(DcMotorSimple.Direction.REVERSE);
 
         telemetry.addData("Status", "Hardware Map Init Complete");
         telemetry.update();
