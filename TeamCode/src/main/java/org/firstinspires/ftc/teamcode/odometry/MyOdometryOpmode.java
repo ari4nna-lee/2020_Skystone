@@ -43,10 +43,10 @@ public class MyOdometryOpmode extends LinearOpMode {
         // globalPositionUpdate.reverseRightEncoder();
         globalPositionUpdate.reverseNormalEncoder();
 
-        goToPosition(0*COUNTS_PER_INCH, 24*COUNTS_PER_INCH, 0.5, 0, 1*COUNTS_PER_INCH);
-        goToPosition(24*COUNTS_PER_INCH, 24*COUNTS_PER_INCH, 0.5, 0, 1*COUNTS_PER_INCH);
-        goToPosition( 0*COUNTS_PER_INCH, 0*COUNTS_PER_INCH, 0.5, 0, 1*COUNTS_PER_INCH);
-        //rotate(90, 0.5, 5);
+        //goToPosition(0*COUNTS_PER_INCH, 24*COUNTS_PER_INCH, 0.5, 0, 1*COUNTS_PER_INCH);
+        //goToPosition(24*COUNTS_PER_INCH, 24*COUNTS_PER_INCH, 0.5, 0, 1*COUNTS_PER_INCH);
+        //goToPosition( 0*COUNTS_PER_INCH, 0*COUNTS_PER_INCH, 0.5, 0, 1*COUNTS_PER_INCH);
+        goToRotation(270, 0.7, 5);
 
         left_front.setPower(0);
         right_front.setPower(0);
@@ -106,26 +106,41 @@ public class MyOdometryOpmode extends LinearOpMode {
             telemetry.update();
         }
     }
-    private void rotate(double targetAngle, double robotPower, double allowableAngleError) {
+    private void goToRotation(double targetAngle, double robotPower, double allowableAngleError) {
         double currentAngle = globalPositionUpdate.returnOrientation();
 
-        double angleError = targetAngle - currentAngle;
+        double angleError = Math.abs(targetAngle - currentAngle);
 
-        while (opModeIsActive() && !isStopRequested() && (angleError > allowableAngleError)){
-            currentAngle = globalPositionUpdate.returnOrientation();
-            angleError = targetAngle - currentAngle;
-
-            while (!(angleError <= allowableAngleError || isStopRequested()) ) {
-                drive(0, 0, robotPower);
-
-                telemetry.addData("Distance to Desired Angle", angleError);
-                telemetry.addData("Allowable Error",allowableAngleError);
-
-                telemetry.addData("Orientation", globalPositionUpdate.returnOrientation());
+        while (opModeIsActive() && !(angleError <= allowableAngleError || isStopRequested())) {
+            rotate(robotPower);
+            if (targetAngle > 180) {
+                robotPower = robotPower * -1;
             }
-            drive(0, 0, 0);
-        }
+            currentAngle = globalPositionUpdate.returnOrientation();
+            angleError = Math.abs(targetAngle - currentAngle);
 
+            telemetry.addData("Distance to Desired Angle", angleError);
+            telemetry.addData("Allowable Error", allowableAngleError);
+
+            telemetry.addData("Orientation", globalPositionUpdate.returnOrientation());
+            telemetry.update();
+        }
+        drive(0, 0, 0);
+            //left_front.setPower(0);
+            //right_front.setPower(0);
+            //left_back.setPower(0);
+            //right_back.setPower(0);
+    }
+
+    private void rotate(double robotPower) {
+        double lFront = robotPower;
+        double rFront = robotPower * -1;
+        double lRear = robotPower;
+        double rRear = robotPower * -1;
+        left_front.setPower(lFront);
+        right_front.setPower(rFront);
+        left_back.setPower(lRear);
+        right_back.setPower(rRear);
     }
 
     private void drive(double y, double x, double rot) {
