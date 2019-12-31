@@ -41,12 +41,12 @@ public class MyOdometryOpmode extends LinearOpMode {
         positionThread.start();
 
         // globalPositionUpdate.reverseRightEncoder();
-        globalPositionUpdate.reverseNormalEncoder();
+        globalPositionUpdate.reverseNormalEncoder() ;
 
         //goToPosition(0*COUNTS_PER_INCH, 24*COUNTS_PER_INCH, 0.5, 0, 1*COUNTS_PER_INCH);
         //goToPosition(24*COUNTS_PER_INCH, 24*COUNTS_PER_INCH, 0.5, 0, 1*COUNTS_PER_INCH);
         //goToPosition( 0*COUNTS_PER_INCH, 0*COUNTS_PER_INCH, 0.5, 0, 1*COUNTS_PER_INCH);
-        goToRotation(270, 0.7, 5);
+        goToRotation(-135, 0.7, 5);
 
         left_front.setPower(0);
         right_front.setPower(0);
@@ -109,15 +109,17 @@ public class MyOdometryOpmode extends LinearOpMode {
     private void goToRotation(double targetAngle, double robotPower, double allowableAngleError) {
         double currentAngle = globalPositionUpdate.returnOrientation();
 
-        double angleError = Math.abs(targetAngle - currentAngle);
+        double angleError = Math.abs(targetAngle) - Math.abs(currentAngle);
 
         while (opModeIsActive() && !(angleError <= allowableAngleError || isStopRequested())) {
-            rotate(robotPower);
-            if (targetAngle > 180) {
-                robotPower = robotPower * -1;
-            }
             currentAngle = globalPositionUpdate.returnOrientation();
-            angleError = Math.abs(targetAngle - currentAngle);
+            angleError = Math.abs(targetAngle) - Math.abs(currentAngle);
+
+            if (targetAngle < 0){
+                rotate(robotPower * -1);
+            } else {
+                rotate(robotPower);
+            }
 
             telemetry.addData("Distance to Desired Angle", angleError);
             telemetry.addData("Allowable Error", allowableAngleError);
