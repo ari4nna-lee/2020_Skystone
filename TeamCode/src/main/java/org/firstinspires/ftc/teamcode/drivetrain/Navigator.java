@@ -65,11 +65,12 @@ public class Navigator {
 
             distance = Math.hypot(distanceToXTarget, distanceToYTarget);
 
-            double robotMovementAngle = Math.toDegrees(Math.atan2(distanceToXTarget, distanceToYTarget));
+            double robotMovementAngle = Math.toDegrees(Math.atan2(distanceToXTarget, distanceToYTarget)) - globalPositionUpdate.returnOrientation();
 
             double robotMovementXComponent = calculateX(robotMovementAngle, robotPower);
             double robotMovementYComponent = calculateY(robotMovementAngle, robotPower);
             double pivotCorrection = desiredRobotOrientation - globalPositionUpdate.returnOrientation();
+
 
             drive(robotMovementYComponent, robotMovementXComponent, pivotCorrection);
 
@@ -141,7 +142,7 @@ public class Navigator {
     private void drive(double y, double x, double rot) {
         double r = Math.hypot(x, y);
         double robotAngle = Math.atan2(y, x) - Math.PI / 4;
-        double rightX = Range.clip(rot / 10.0, -0.5, 0.5);
+        double rightX = Range.clip(rot / 50.0, -0.7, 0.7);
 
         telemetry.addData("RAW Rot", rot);
         telemetry.addData("Control rightX", rightX);

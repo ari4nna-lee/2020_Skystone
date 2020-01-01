@@ -79,14 +79,14 @@ public class FoundationOp extends LinearOpMode {
                 navigator.goToPosition(28, 26, MOTOR_POWER, 0, 1);
                 hookLeft.setPosition(0);
                 hookRight.setPosition(0);
-                sleep(1000);
+                sleep(500);
                 navigator.goToPosition(28, 16, MOTOR_POWER, 0, 1);
                 navigator.pivotToOrientation(90, ROTATION_MOTOR_POWER, 5);
-                navigator.goToPosition(globalPositionUpdate.returnXCoordinate() + 4.0, globalPositionUpdate.returnYCoordinate(), 0.7, 90, 1);
-                //hookLeft.setPosition(1);
-                //hookRight.setPosition(1);
-                //sleep(1000);
-                //navigator.goToPosition(0, 12, 0.5, 90, 1);
+                navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH + 6.0, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, 0.7, 90, 1);
+                hookLeft.setPosition(1);
+                hookRight.setPosition(1);
+                sleep(500);
+                navigator.goToPosition(-30, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH - 5, MOTOR_POWER, 90, 1);
             }
 
             navigator.stop();

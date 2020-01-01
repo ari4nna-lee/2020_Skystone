@@ -46,7 +46,14 @@ public class MyOdometryOpmode extends LinearOpMode {
         //goToPosition(0*COUNTS_PER_INCH, 24*COUNTS_PER_INCH, 0.5, 0, 1*COUNTS_PER_INCH);
         //goToPosition(24*COUNTS_PER_INCH, 24*COUNTS_PER_INCH, 0.5, 0, 1*COUNTS_PER_INCH);
         //goToPosition( 0*COUNTS_PER_INCH, 0*COUNTS_PER_INCH, 0.5, 0, 1*COUNTS_PER_INCH);
-        goToRotation(-135, 0.7, 5);
+        goToRotation(90, 0.7, 5);
+        drive(0, 0, 0);
+        sleep(2000);
+        goToPosition(globalPositionUpdate.returnXCoordinate() + 12 * COUNTS_PER_INCH,
+                globalPositionUpdate.returnYCoordinate(),
+                0.5,
+                globalPositionUpdate.returnOrientation(),
+                2*COUNTS_PER_INCH);
 
         left_front.setPower(0);
         right_front.setPower(0);
@@ -84,24 +91,30 @@ public class MyOdometryOpmode extends LinearOpMode {
 
             distance  = Math.hypot(distanceToXTarget, distanceToYTarget);
 
-            double robotMovementAngle = Math.toDegrees(Math.atan2(distanceToXTarget, distanceToYTarget));
+            double robotMovementAngle = Math.toDegrees(Math.atan2(distanceToXTarget, distanceToYTarget)) - globalPositionUpdate.returnOrientation();
 
             double robotMovementXComponent = calculateX(robotMovementAngle, robotPower);
             double robotMovementYComponent = calculateY(robotMovementAngle, robotPower);
             double pivotCorrection = desiredRobotOrientation - globalPositionUpdate.returnOrientation();
 
-            drive(robotMovementYComponent, robotMovementXComponent, pivotCorrection);
-
+            //drive(robotMovementYComponent, robotMovementXComponent, pivotCorrection);
+            //sleep(50);
+            telemetry.addData("X to target", distanceToXTarget);
+            telemetry.addData("Y to target", distanceToYTarget);
             telemetry.addData("Distance to target", distance);
-            telemetry.addData("Allowable Error", allowableDistanceError);
+            telemetry.addData("Robot Movement Angle", robotMovementAngle);
+            //telemetry.addData("Allowable Error", allowableDistanceError);
+            telemetry.addData("Control Y", robotMovementYComponent);
+            telemetry.addData("Control X", robotMovementXComponent);
+            telemetry.addData("Control Pivot", pivotCorrection);
 
             telemetry.addData("X Position", globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH);
             telemetry.addData("Y Position", globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH);
             telemetry.addData("Orientation (Degrees)", globalPositionUpdate.returnOrientation());
 
-            telemetry.addData("Vertical left encoder position", verticalLeft.getCurrentPosition());
-            telemetry.addData("Vertical right encoder position", verticalRight.getCurrentPosition());
-            telemetry.addData("horizontal encoder position", horizontal.getCurrentPosition());
+            //telemetry.addData("Vertical left encoder position", verticalLeft.getCurrentPosition());
+            //telemetry.addData("Vertical right encoder position", verticalRight.getCurrentPosition());
+            //telemetry.addData("horizontal encoder position", horizontal.getCurrentPosition());
 
             telemetry.update();
         }
@@ -150,8 +163,8 @@ public class MyOdometryOpmode extends LinearOpMode {
         double robotAngle = Math.atan2(y, x) - Math.PI / 4;
         double rightX = Range.clip(rot / 10.0, -0.5, 0.5);
 
-        telemetry.addData("RAW Rot", rot);
-        telemetry.addData("Control rightX", rightX);
+        //telemetry.addData("RAW Rot", rot);
+        //telemetry.addData("Control rightX", rightX);
 
         double lFront = r * Math.cos(robotAngle) + rightX;
         double rFront = r * Math.sin(robotAngle) - rightX;
