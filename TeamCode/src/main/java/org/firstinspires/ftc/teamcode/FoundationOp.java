@@ -62,16 +62,16 @@ public class FoundationOp extends LinearOpMode {
 
             if (loc == RobotLocation.BLUE_FOUNDATION) {
                 navigator.goToPosition(-28, 0, MOTOR_POWER, 0, 1);
-                navigator.goToPosition(-28, 30, MOTOR_POWER, 0, 1);
+                navigator.goToPosition(-28, 26, MOTOR_POWER, 0, 1);
                 hookLeft.setPosition(0);
                 hookRight.setPosition(0);
                 sleep(500);
-                navigator.goToPosition(-28, 12, MOTOR_POWER, 0, 1);
+                navigator.goToPosition(-28, 16, MOTOR_POWER, 0, 1);
                 navigator.pivotToOrientation(-90, ROTATION_MOTOR_POWER, 5);
-                navigator.goToPosition(-36, 12, MOTOR_POWER, -90, 1);
+                navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH - 6.0, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, 0.7, -90, 1);
                 hookLeft.setPosition(1);
                 hookRight.setPosition(1);
-                navigator.goToPosition(0, 12, MOTOR_POWER, -90, 1);
+                navigator.goToPosition(30, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH - 5, MOTOR_POWER, -90, 1);
 
 
             } else {
@@ -147,7 +147,7 @@ public class FoundationOp extends LinearOpMode {
 
     private RobotLocation getLocation() {
         // TODO - use vuforia to locate the robot
-        return RobotLocation.RED_FOUNDATION;
+        return RobotLocation.BLUE_FOUNDATION;
     }
 }
 
