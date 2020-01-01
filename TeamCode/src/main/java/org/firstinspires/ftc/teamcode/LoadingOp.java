@@ -1,0 +1,129 @@
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
+import com.qualcomm.robotcore.hardware.Servo;
+
+import org.firstinspires.ftc.teamcode.drivetrain.Navigator;
+import org.firstinspires.ftc.teamcode.odometry.OdometryGlobalCoordinatePosition;
+
+@Autonomous(name = "LoadingOp (Studio)", group = "")
+public class LoadingOp extends LinearOpMode {
+    final double COUNTS_PER_INCH = 306.382254;
+    final double MOTOR_POWER = 0.7;
+    OdometryGlobalCoordinatePosition globalPositionUpdate;
+
+    enum Location {
+        BLUE_SIDE,
+        RED_SIDE
+    }
+
+    enum SkystoneLocation {
+        LEFT,
+        CENTER,
+        RIGHT
+    }
+
+    private DcMotor rightFront;
+    private DcMotor rightBack;
+    private DcMotor leftFront;
+    private DcMotor leftBack;
+    private DistanceSensor distanceFront;
+    private Servo sideGrabber;
+
+    @Override
+    public void runOpMode() {
+
+        rightFront = hardwareMap.dcMotor.get("rightFront");
+        rightBack = hardwareMap.dcMotor.get("rightBack");
+        leftFront = hardwareMap.dcMotor.get("leftFront");
+        leftBack = hardwareMap.dcMotor.get("leftBack");
+        sideGrabber = hardwareMap.servo.get("sideGrabber");
+        distanceFront = hardwareMap.get(DistanceSensor.class, "distanceFront");
+        leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
+        leftBack.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        waitForStart();
+
+        // create robot Navigator
+        Navigator navigator = new Navigator(this);
+        // start GlobalCoordinatePosition thread to constantly update the global coordinate positions
+        globalPositionUpdate = navigator.getGlobalPositionRunnable();
+        Thread positionThread = new Thread(globalPositionUpdate);
+        positionThread.start();
+
+        if (opModeIsActive()) {
+            Location location = getLocation();
+            SkystoneLocation skystoneLocation = getSkystoneLocation();
+            sideGrabber.setPosition(0);
+
+            if (location == Location.BLUE_SIDE) {
+                if (skystoneLocation == SkystoneLocation.LEFT) {
+
+                } else if (skystoneLocation == SkystoneLocation.CENTER) {
+
+                } else {
+
+                }
+
+            } else {
+                if (skystoneLocation == SkystoneLocation.LEFT) {
+                    navigator.goToPosition(0, 11, MOTOR_POWER, 0, 1);
+                    navigator.goToPosition(-32, 11, MOTOR_POWER, 0, 1);
+                    sideGrabber.setPosition(1);
+                    sleep(500);
+                    navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH + 8, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, MOTOR_POWER, 0, 1);
+                    navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, -30, MOTOR_POWER, 0, 1);
+                    sideGrabber.setPosition(0);
+                    sleep(500);
+                    navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, 34, MOTOR_POWER, 0, 1);
+                    navigator.goToPosition(-32, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, MOTOR_POWER, 0, 1);
+                    sideGrabber.setPosition(1);
+                    sleep(500);
+                    navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH + 8, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, MOTOR_POWER, 0, 1);
+                    navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, -30, MOTOR_POWER, 0, 1);
+                    sideGrabber.setPosition(0);
+                    sleep(500);
+                    navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, -20, MOTOR_POWER, 0, 1);
+                    sleep(500);
+
+
+
+
+                } else if (skystoneLocation == SkystoneLocation.CENTER) {
+
+                } else {
+
+                }
+
+            }
+            navigator.stop();
+
+            while(opModeIsActive()){
+                //Display Global (x, y, theta) coordinates
+                telemetry.addData("X Position", globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH);
+                telemetry.addData("Y Position", globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH);
+                telemetry.addData("Orientation (Degrees)", globalPositionUpdate.returnOrientation());
+
+                telemetry.addData("Thread Active", positionThread.isAlive());
+                telemetry.update();
+            }
+            globalPositionUpdate.stop();
+
+
+        }
+
+    }
+
+    private Location getLocation() {
+        // TODO - use vuforia to locate the robot
+        return Location.RED_SIDE;
+    }
+    private SkystoneLocation getSkystoneLocation() {
+        // TODO - use vuforia to locate the skystones
+        return SkystoneLocation.LEFT;
+    }
+}
