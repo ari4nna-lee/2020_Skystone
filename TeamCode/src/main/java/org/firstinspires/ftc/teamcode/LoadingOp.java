@@ -22,9 +22,9 @@ public class LoadingOp extends LinearOpMode {
     }
 
     enum SkystoneLocation {
-        LEFT,
-        CENTER,
-        RIGHT
+        FIRST,
+        SECOND,
+        THIRD
     }
 
     private DcMotor rightFront;
@@ -61,16 +61,34 @@ public class LoadingOp extends LinearOpMode {
             sideGrabber.setPosition(0);
 
             if (location == Location.BLUE_SIDE) {
-                if (skystoneLocation == SkystoneLocation.LEFT) {
+                if (skystoneLocation == SkystoneLocation.FIRST) {
+                    navigator.goToPosition(0, -11, MOTOR_POWER, 0, 1);
+                    navigator.goToPosition(-32, -11, MOTOR_POWER, 0, 1);
+                    sideGrabber.setPosition(1);
+                    sleep(500);
+                    navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH + 8, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, MOTOR_POWER, 0, 1);
+                    navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, 30, MOTOR_POWER, 0, 1);
+                    sideGrabber.setPosition(0);
+                    sleep(500);
+                    navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, -34, MOTOR_POWER, 0, 1);
+                    navigator.goToPosition(-32, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, MOTOR_POWER, 0, 1);
+                    sideGrabber.setPosition(1);
+                    sleep(500);
+                    navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH + 8, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, MOTOR_POWER, 0, 1);
+                    navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, 30, MOTOR_POWER, 0, 1);
+                    sideGrabber.setPosition(0);
+                    sleep(500);
+                    navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, 20, MOTOR_POWER, 0, 1);
+                    sleep(500);
 
-                } else if (skystoneLocation == SkystoneLocation.CENTER) {
+                } else if (skystoneLocation == SkystoneLocation.SECOND) {
 
                 } else {
 
                 }
 
             } else {
-                if (skystoneLocation == SkystoneLocation.LEFT) {
+                if (skystoneLocation == SkystoneLocation.FIRST) {
                     navigator.goToPosition(0, 11, MOTOR_POWER, 0, 1);
                     navigator.goToPosition(-32, 11, MOTOR_POWER, 0, 1);
                     sideGrabber.setPosition(1);
@@ -93,7 +111,7 @@ public class LoadingOp extends LinearOpMode {
 
 
 
-                } else if (skystoneLocation == SkystoneLocation.CENTER) {
+                } else if (skystoneLocation == SkystoneLocation.SECOND) {
 
                 } else {
 
@@ -120,10 +138,10 @@ public class LoadingOp extends LinearOpMode {
 
     private Location getLocation() {
         // TODO - use vuforia to locate the robot
-        return Location.RED_SIDE;
+        return Location.BLUE_SIDE;
     }
     private SkystoneLocation getSkystoneLocation() {
         // TODO - use vuforia to locate the skystones
-        return SkystoneLocation.LEFT;
+        return SkystoneLocation.FIRST;
     }
 }
