@@ -1,0 +1,157 @@
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
+import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
+
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.teamcode.drivetrain.Navigator;
+import org.firstinspires.ftc.teamcode.odometry.OdometryGlobalCoordinatePosition;
+
+@Autonomous(name = "FoundationOp(Studio)", group = "")
+public class FoundationOp extends LinearOpMode {
+    final double COUNTS_PER_INCH = 306.382254;
+    final double MOTOR_POWER = 0.7;
+    final double ROTATION_MOTOR_POWER = 0.8;
+    OdometryGlobalCoordinatePosition globalPositionUpdate;
+
+    enum RobotLocation {
+        BLUE_FOUNDATION,
+        RED_FOUNDATION
+    }
+
+    private DcMotor rightFront;
+    private DcMotor rightBack;
+    private DcMotor leftFront;
+    private DcMotor leftBack;
+    private DistanceSensor distanceFront;
+    private Servo hookLeft;
+    private Servo hookRight;
+
+    @Override
+    public void runOpMode() {
+
+        rightFront = hardwareMap.dcMotor.get("rightFront");
+        rightBack = hardwareMap.dcMotor.get("rightBack");
+        leftFront = hardwareMap.dcMotor.get("leftFront");
+        leftBack = hardwareMap.dcMotor.get("leftBack");
+        hookLeft = hardwareMap.servo.get("hookLeft");
+        hookRight = hardwareMap.servo.get("hookRight");
+        distanceFront = hardwareMap.get(DistanceSensor.class, "distanceFront");
+        leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
+        leftBack.setDirection(DcMotorSimple.Direction.REVERSE);
+        hookLeft.setDirection(Servo.Direction.REVERSE);
+
+        waitForStart();
+
+        // create robot Navigator
+        Navigator navigator = new Navigator(this);
+        // start GlobalCoordinatePosition thread to constantly update the global coordinate positions
+        globalPositionUpdate = navigator.getGlobalPositionRunnable();
+        Thread positionThread = new Thread(globalPositionUpdate);
+        positionThread.start();
+
+        if (opModeIsActive()) {
+            RobotLocation loc = getLocation();
+            hookLeft.setPosition(1);
+            hookRight.setPosition(1);
+
+            if (loc == RobotLocation.BLUE_FOUNDATION) {
+                navigator.goToPosition(-28, 0, MOTOR_POWER, 0, 1);
+                navigator.goToPosition(-28, 30, MOTOR_POWER, 0, 1);
+                hookLeft.setPosition(0);
+                hookRight.setPosition(0);
+                sleep(500);
+                navigator.goToPosition(-28, 12, MOTOR_POWER, 0, 1);
+                navigator.pivotToOrientation(-90, ROTATION_MOTOR_POWER, 5);
+                navigator.goToPosition(-36, 12, MOTOR_POWER, -90, 1);
+                hookLeft.setPosition(1);
+                hookRight.setPosition(1);
+                navigator.goToPosition(0, 12, MOTOR_POWER, -90, 1);
+
+
+            } else {
+                navigator.goToPosition(28, 0, MOTOR_POWER, 0, 1);
+                navigator.goToPosition(28, 26, MOTOR_POWER, 0, 1);
+                hookLeft.setPosition(0);
+                hookRight.setPosition(0);
+                sleep(1000);
+                navigator.goToPosition(28, 16, MOTOR_POWER, 0, 1);
+                navigator.pivotToOrientation(90, ROTATION_MOTOR_POWER, 5);
+                navigator.goToPosition(globalPositionUpdate.returnXCoordinate() + 4.0, globalPositionUpdate.returnYCoordinate(), 0.7, 90, 1);
+                //hookLeft.setPosition(1);
+                //hookRight.setPosition(1);
+                //sleep(1000);
+                //navigator.goToPosition(0, 12, 0.5, 90, 1);
+            }
+
+            navigator.stop();
+
+            while(opModeIsActive()){
+                //Display Global (x, y, theta) coordinates
+                telemetry.addData("X Position", globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH);
+                telemetry.addData("Y Position", globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH);
+                telemetry.addData("Orientation (Degrees)", globalPositionUpdate.returnOrientation());
+
+                telemetry.addData("Thread Active", positionThread.isAlive());
+                telemetry.update();
+            }
+            globalPositionUpdate.stop();
+            /*
+
+            ElapsedTime runtime = new ElapsedTime();
+            hookLeft.setPosition(1);
+            hookRight.setPosition(1);
+
+
+            while (runtime.seconds() < 3 && (!isStopRequested())) {
+                drive(0, -0.8, 0);
+                sleep(50);
+            }
+            drive(0, 0, 0);
+            while (!(distanceFront.getDistance(DistanceUnit.CM) <= 15) && (!isStopRequested())) {
+                drive(0.5, 0, 0);
+            }
+            // drive(0, 0, 0);
+            stopRobot();
+            hookLeft.setPosition(0);
+            hookRight.setPosition(0);
+            sleep(1000);
+
+            runtime = new ElapsedTime();
+            while (runtime.seconds() < 2 && (!isStopRequested())) {
+                drive(-0.7, 0.7, 0);
+            }
+            // drive(0, 0, 0);
+            stopRobot();
+            runtime = new ElapsedTime();
+            while (runtime.seconds() < 1.5 && !isStopRequested()) {
+                drive(0, 0, -1);
+            }
+            // drive(0, 0, 0);
+            stopRobot();
+            runtime = new ElapsedTime();
+            while (runtime.seconds() < 1 && !isStopRequested()) {
+                drive(0.5, 0, 0);
+            }
+            // drive(0, 0, 0);
+            stopRobot(); */
+
+        }
+
+    }
+
+    private RobotLocation getLocation() {
+        // TODO - use vuforia to locate the robot
+        return RobotLocation.RED_FOUNDATION;
+    }
+}
+
+
+
+
+
