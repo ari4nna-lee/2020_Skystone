@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.drivetrain.Navigator;
 import org.firstinspires.ftc.teamcode.odometry.OdometryGlobalCoordinatePosition;
 
@@ -33,6 +34,7 @@ public class LoadingOp extends LinearOpMode {
     private DcMotor leftBack;
     private DistanceSensor distanceFront;
     private Servo sideGrabber;
+    private DistanceSensor distanceLeft;
 
     @Override
     public void runOpMode() {
@@ -43,6 +45,7 @@ public class LoadingOp extends LinearOpMode {
         leftBack = hardwareMap.dcMotor.get("leftBack");
         sideGrabber = hardwareMap.servo.get("sideGrabber");
         distanceFront = hardwareMap.get(DistanceSensor.class, "distanceFront");
+        distanceLeft = hardwareMap.get(DistanceSensor.class, "distanceLeft");
         leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
         leftBack.setDirection(DcMotorSimple.Direction.REVERSE);
 
@@ -62,23 +65,32 @@ public class LoadingOp extends LinearOpMode {
 
             if (location == Location.BLUE_SIDE) {
                 if (skystoneLocation == SkystoneLocation.FIRST) {
-                    navigator.goToPosition(0, -11, MOTOR_POWER, 0, 1);
-                    navigator.goToPosition(-32, -11, MOTOR_POWER, 0, 1);
+                    navigator.goToPosition(0, 4, MOTOR_POWER, 0, 1);
+                    navigator.goToPosition(-25, 4, MOTOR_POWER, 0, 1);
+                    navigator.stop();
+                    sleep(100);
+                    double distance = distanceLeft.getDistance(DistanceUnit.INCH);
+                    navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH - distance, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, 0.5, 0, 1 );
+                    sleep(1000);
                     sideGrabber.setPosition(1);
                     sleep(500);
                     navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH + 8, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, MOTOR_POWER, 0, 1);
-                    navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, 30, MOTOR_POWER, 0, 1);
+                    navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, 46, MOTOR_POWER, 0, 1);
                     sideGrabber.setPosition(0);
                     sleep(500);
-                    navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, -34, MOTOR_POWER, 0, 1);
-                    navigator.goToPosition(-32, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, MOTOR_POWER, 0, 1);
+                    navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, -18, MOTOR_POWER, 0, 1);
+                    navigator.goToPosition(-27, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, MOTOR_POWER, 0, 1);
+                    navigator.stop();
+                    sleep(100);
+                    distance = distanceLeft.getDistance(DistanceUnit.INCH);
+                    navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH - distance, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, MOTOR_POWER, 0, 1);
                     sideGrabber.setPosition(1);
                     sleep(500);
                     navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH + 8, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, MOTOR_POWER, 0, 1);
-                    navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, 30, MOTOR_POWER, 0, 1);
+                    navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, 46, MOTOR_POWER, 0, 1);
                     sideGrabber.setPosition(0);
                     sleep(500);
-                    navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, 20, MOTOR_POWER, 0, 1);
+                    navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, 35, MOTOR_POWER, 0, 1);
                     sleep(500);
 
                 } else if (skystoneLocation == SkystoneLocation.SECOND) {
@@ -89,23 +101,33 @@ public class LoadingOp extends LinearOpMode {
 
             } else {
                 if (skystoneLocation == SkystoneLocation.FIRST) {
-                    navigator.goToPosition(0, 11, MOTOR_POWER, 0, 1);
-                    navigator.goToPosition(-32, 11, MOTOR_POWER, 0, 1);
+                    navigator.goToPosition(0, -4, MOTOR_POWER, 0, 1);
+                    navigator.goToPosition(-25, -4, MOTOR_POWER, 0, 1);
+                    navigator.stop();
+                    sleep(100);
+                    double distance = distanceLeft.getDistance(DistanceUnit.INCH);
+                    navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH - distance, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, 0.5, 0, 1 );
+                    sleep(1000);
                     sideGrabber.setPosition(1);
                     sleep(500);
                     navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH + 8, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, MOTOR_POWER, 0, 1);
-                    navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, -30, MOTOR_POWER, 0, 1);
+                    navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, -46, MOTOR_POWER, 0, 1);
                     sideGrabber.setPosition(0);
                     sleep(500);
-                    navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, 34, MOTOR_POWER, 0, 1);
-                    navigator.goToPosition(-32, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, MOTOR_POWER, 0, 1);
+                    navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, 18, MOTOR_POWER, 0, 1);
+                    navigator.goToPosition(-20, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, MOTOR_POWER, 0, 1);
+                    navigator.stop();
+                    sleep(100);
+                    distance = distanceLeft.getDistance(DistanceUnit.INCH);
+                    navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH - distance, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, 0.5, 0, 1 );
+                    sleep(1000);
                     sideGrabber.setPosition(1);
                     sleep(500);
                     navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH + 8, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, MOTOR_POWER, 0, 1);
-                    navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, -30, MOTOR_POWER, 0, 1);
+                    navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, -46, MOTOR_POWER, 0, 1);
                     sideGrabber.setPosition(0);
                     sleep(500);
-                    navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, -20, MOTOR_POWER, 0, 1);
+                    navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, -35, MOTOR_POWER, 0, 1);
                     sleep(500);
 
 
@@ -138,7 +160,7 @@ public class LoadingOp extends LinearOpMode {
 
     private Location getLocation() {
         // TODO - use vuforia to locate the robot
-        return Location.BLUE_SIDE;
+        return Location.RED_SIDE;
     }
     private SkystoneLocation getSkystoneLocation() {
         // TODO - use vuforia to locate the skystones
