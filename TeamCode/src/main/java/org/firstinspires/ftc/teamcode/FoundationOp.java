@@ -17,6 +17,10 @@ public class FoundationOp extends LinearOpMode {
     final double COUNTS_PER_INCH = 306.382254;
     final double MOTOR_POWER = 0.7;
     final double ROTATION_MOTOR_POWER = 0.8;
+
+    private final double HOOK_POS_UP = 1.0;
+    private final double HOOK_POS_DOWN = 0;
+
     OdometryGlobalCoordinatePosition globalPositionUpdate;
 
     enum RobotLocation {
@@ -57,34 +61,34 @@ public class FoundationOp extends LinearOpMode {
 
         if (opModeIsActive()) {
             RobotLocation loc = getLocation();
-            hookLeft.setPosition(1);
-            hookRight.setPosition(1);
+            hookLeft.setPosition(HOOK_POS_UP);
+            hookRight.setPosition(HOOK_POS_UP);
 
             if (loc == RobotLocation.BLUE_FOUNDATION) {
                 navigator.goToPosition(-28, 0, MOTOR_POWER, 0, 1);
                 navigator.goToPosition(-28, 26, MOTOR_POWER, 0, 1);
-                hookLeft.setPosition(0);
-                hookRight.setPosition(0);
+                hookLeft.setPosition(HOOK_POS_DOWN);
+                hookRight.setPosition(HOOK_POS_DOWN);
                 sleep(500);
                 navigator.goToPosition(-28, 16, MOTOR_POWER, 0, 1);
                 navigator.pivotToOrientation(-90, ROTATION_MOTOR_POWER, 5);
                 navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH - 6.0, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, 0.7, -90, 1);
-                hookLeft.setPosition(1);
-                hookRight.setPosition(1);
+                hookLeft.setPosition(HOOK_POS_UP);
+                hookRight.setPosition(HOOK_POS_UP);
                 navigator.goToPosition(30, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH - 5, MOTOR_POWER, -90, 1);
 
 
             } else {
                 navigator.goToPosition(28, 0, MOTOR_POWER, 0, 1);
                 navigator.goToPosition(28, 26, MOTOR_POWER, 0, 1);
-                hookLeft.setPosition(0);
-                hookRight.setPosition(0);
+                hookLeft.setPosition(HOOK_POS_DOWN);
+                hookRight.setPosition(HOOK_POS_DOWN);
                 sleep(500);
                 navigator.goToPosition(28, 16, MOTOR_POWER, 0, 1);
                 navigator.pivotToOrientation(90, ROTATION_MOTOR_POWER, 5);
                 navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH + 6.0, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, 0.7, 90, 1);
-                hookLeft.setPosition(1);
-                hookRight.setPosition(1);
+                hookLeft.setPosition(HOOK_POS_UP);
+                hookRight.setPosition(HOOK_POS_UP);
                 sleep(500);
                 navigator.goToPosition(-30, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH - 5, MOTOR_POWER, 90, 1);
             }

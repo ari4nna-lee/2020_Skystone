@@ -10,9 +10,15 @@ import com.qualcomm.robotcore.hardware.TouchSensor;
 @TeleOp(name = "SkyTeleOp (Studio)", group = "")
 public class SkyTeleOp extends LinearOpMode {
 
-    private final double SWING_POS_DIVISOR = 9000.0;
-    private final double PITCH_LEFT_POS = 0.75;
-    private final double PITCH_RIGHT_POS = 0.62;
+    private final double SWING_POS_DIVISOR = 8500.0;
+    private final double PITCH_LEFT_POS = 0.70;
+    private final double PITCH_RIGHT_POS = 0.51;
+
+    private final double PUSH_POS_UP = 1.0;
+    private final double PUSH_POS_DOWN = 0;
+
+    private final double HOOK_POS_UP = 1.0;
+    private final double HOOK_POS_DOWN = 0;
 
     private DcMotor rightFront;
     private DcMotor rightBack;
@@ -102,8 +108,8 @@ public class SkyTeleOp extends LinearOpMode {
                 } else if (gamepad1.right_trigger > 0) {
                     leftInduction.setPower(-0.8);
                     rightInduction.setPower(-0.8);
-                    if (push.getPosition() != 1.0) {
-                        push.setPosition(1.0);
+                    if (push.getPosition() != PUSH_POS_UP) {
+                        push.setPosition(PUSH_POS_UP);
                     }
                 } else {
                     leftInduction.setPower(0);
@@ -111,39 +117,39 @@ public class SkyTeleOp extends LinearOpMode {
                 }
                 //Manual Push Control
                 if (gamepad1.x){
-                    push.setPosition(0);
+                    push.setPosition(PUSH_POS_DOWN);
                 }
                 if (gamepad1.y){
-                    push.setPosition(1);
+                    push.setPosition(PUSH_POS_UP);
                 }
 
 
                 //Hooks
                 if (gamepad1.a) {
-                    hookLeft.setPosition(1);
-                    hookRight.setPosition(1);
+                    hookLeft.setPosition(HOOK_POS_UP);
+                    hookRight.setPosition(HOOK_POS_UP);
                 } else if (gamepad1.b) {
-                    hookLeft.setPosition(0);
-                    hookRight.setPosition(0);
+                    hookLeft.setPosition(HOOK_POS_DOWN);
+                    hookRight.setPosition(HOOK_POS_DOWN);
                 } else {
                     // do nothing
                 }
 
                 //Arm Movement
-                if (swingSpeed > 0) {
+                if (swingSpeed > 0) {  // ARM MOVING DOWN
                     if (switch_TouchSensor.isPressed()) {
                         swing.setPower(0);
                         pitch.setPosition(0.72);
                         armGrabber.setPosition(0.1839);
                     } else {
                         if (yaw.getPosition() > 0.9){
-                            pitch.setPosition(PITCH_RIGHT_POS +(swing.getCurrentPosition() - initialPosition) / SWING_POS_DIVISOR);
+                            pitch.setPosition(PITCH_RIGHT_POS + (swing.getCurrentPosition() - initialPosition) / SWING_POS_DIVISOR);
                         } else {
                             pitch.setPosition(PITCH_LEFT_POS - (swing.getCurrentPosition() - initialPosition) / SWING_POS_DIVISOR);
                         }
                         swing.setPower(swingSpeed * -0.45);
                     }
-                } else if (swingSpeed < 0) {
+                } else if (swingSpeed < 0) {   // ARM MOVING UP
                     if (yaw.getPosition() > 0.9){
                         pitch.setPosition(PITCH_RIGHT_POS + (swing.getCurrentPosition() - initialPosition) / SWING_POS_DIVISOR);
                     } else {
@@ -169,7 +175,7 @@ public class SkyTeleOp extends LinearOpMode {
                     swing.setPower(0);
                     swing.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-                    pitch.setPosition(0.69);
+                    pitch.setPosition(PITCH_RIGHT_POS + 0.11);
                     while (!(yaw.getPosition() == 1) && !isStopRequested()) {
                         yaw.setPosition(yaw.getPosition() + 0.02);
                         sleep(50);
@@ -185,6 +191,8 @@ public class SkyTeleOp extends LinearOpMode {
                 if (gamepad2.x) {
                     pitch.setPosition(0.82);
                     armGrabber.setPosition(0.013);
+                    sleep(100);
+                    push.setPosition(PUSH_POS_UP);
                 }
                 telemetry.update();
                 if (gamepad2.dpad_left) {
