@@ -20,6 +20,8 @@ public class SkyTeleOp extends LinearOpMode {
     private final double HOOK_POS_UP = 1.0;
     private final double HOOK_POS_DOWN = 0;
 
+    final double POWER_MULTIPLIER = 9.0/7.0;
+
     private DcMotor rightFront;
     private DcMotor rightBack;
     private DcMotor leftFront;
@@ -65,6 +67,16 @@ public class SkyTeleOp extends LinearOpMode {
             leftBack.setDirection(DcMotorSimple.Direction.REVERSE);
             rightInduction.setDirection(DcMotorSimple.Direction.REVERSE);
 
+            leftFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            leftBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            rightFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            rightBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+            leftFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            leftBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            rightFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            rightBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
             swing.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             extend.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             swing.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -92,10 +104,10 @@ public class SkyTeleOp extends LinearOpMode {
                 double robotAngle = Math.atan2(gamepad1.left_stick_y * -1, gamepad1.left_stick_x) - Math.PI / 4;
                 double rightX = gamepad1.right_stick_x;
 
-                double lFront = r * Math.cos(robotAngle) + rightX;
-                double rFront = r * Math.sin(robotAngle) - rightX;
-                double lRear = r * Math.sin(robotAngle) + rightX;
-                double rRear = r * Math.cos(robotAngle) - rightX;
+                double lFront = (r * Math.cos(robotAngle) + rightX) * POWER_MULTIPLIER;
+                double rFront = (r * Math.sin(robotAngle) - rightX) * POWER_MULTIPLIER;
+                double lRear = (r * Math.sin(robotAngle) + rightX) * POWER_MULTIPLIER;
+                double rRear = (r * Math.cos(robotAngle) - rightX) * POWER_MULTIPLIER;
                 leftFront.setPower(lFront);
                 rightFront.setPower(rFront);
                 leftBack.setPower(lRear);
@@ -147,7 +159,7 @@ public class SkyTeleOp extends LinearOpMode {
                         } else {
                             pitch.setPosition(PITCH_LEFT_POS - (swing.getCurrentPosition() - initialPosition) / SWING_POS_DIVISOR);
                         }
-                        swing.setPower(swingSpeed * -0.45);
+                        swing.setPower(swingSpeed * -0.3);
                     }
                 } else if (swingSpeed < 0) {   // ARM MOVING UP
                     if (yaw.getPosition() > 0.9){
@@ -155,7 +167,7 @@ public class SkyTeleOp extends LinearOpMode {
                     } else {
                         pitch.setPosition(PITCH_LEFT_POS - (swing.getCurrentPosition() - initialPosition) / SWING_POS_DIVISOR);
                     }
-                    swing.setPower(swingSpeed * -0.45);
+                    swing.setPower(swingSpeed * -0.3);
                 } else {
                     swing.setPower(0);
                 }
@@ -194,6 +206,11 @@ public class SkyTeleOp extends LinearOpMode {
                     sleep(100);
                     push.setPosition(PUSH_POS_UP);
                 }
+                //if (gamepad2.y) {
+                    //swing.setTargetPosition(0);
+                    // TODO extend.setTargetPosition(0);
+                    //yaw.setPosition(0);
+                }
                 telemetry.update();
                 if (gamepad2.dpad_left) {
                     armGrabber.setPosition(armGrabber.getPosition() + 0.005);
@@ -219,7 +236,7 @@ public class SkyTeleOp extends LinearOpMode {
             }
         }
     }
-}
+
 
 
 
