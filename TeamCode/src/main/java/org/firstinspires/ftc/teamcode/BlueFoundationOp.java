@@ -92,6 +92,7 @@ public class BlueFoundationOp extends LinearOpMode {
                 //navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH - 6.0, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, 0.7, -90, 1);
                 hookLeft.setPosition(HOOK_POS_UP);
                 hookRight.setPosition(HOOK_POS_UP);
+                navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH -2, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, MOTOR_POWER, -90, 1);
                 navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, 15, MOTOR_POWER, -90, 1);
                 navigator.goToPosition(40, 15, MOTOR_POWER, -90, 2);
 
