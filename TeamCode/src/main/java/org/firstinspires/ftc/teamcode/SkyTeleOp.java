@@ -193,6 +193,11 @@ public class SkyTeleOp extends LinearOpMode {
                 } else {
                     swing.setPower(0);
                 }
+                if (extend.getCurrentPosition() < -100) {
+                    sideGrabber.setPosition(0.35);
+                } else {
+                    sideGrabber.setPosition(0);
+                }
 
                 extend.setPower(extendSpeed * 0.5);
 
@@ -263,15 +268,16 @@ public class SkyTeleOp extends LinearOpMode {
                     }
 
                 }
+                telemetry.addData("push", push.getPosition());
+                telemetry.addData("Left Joy value", gamepad2.left_stick_y);
+                telemetry.addData("Swing", swing.getCurrentPosition());
+                telemetry.addData("extend", extend.getCurrentPosition());
+                telemetry.addData("pitch", pitch.getPosition());
+                telemetry.addData("arm grabber", armGrabber.getPosition());
+                telemetry.addData("yaw", yaw.getPosition());
+                telemetry.update();
             }
-            telemetry.addData("push", push.getPosition());
-            telemetry.addData("Left Joy value", gamepad2.left_stick_y);
-            telemetry.addData("Swing", swing.getCurrentPosition());
-            telemetry.addData("extend", extend.getCurrentPosition());
-            telemetry.addData("pitch", pitch.getPosition());
-            telemetry.addData("arm grabber", armGrabber.getPosition());
-            telemetry.addData("yaw", yaw.getPosition());
-            telemetry.update();
+
         }
     }
 }
