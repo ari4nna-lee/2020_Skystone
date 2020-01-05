@@ -6,11 +6,11 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
-import com.qualcomm.robotcore.util.ElapsedTime;
 
 @TeleOp(name = "SkyTeleOp (Studio)", group = "")
 public class SkyTeleOp extends LinearOpMode {
 
+    private final double SWING_POWER_MULTIPLIER = -0.4;
     private final double SWING_POS_DIVISOR = 8500.0;
     private final double PITCH_LEFT_POS = 0.70;
     private final double PITCH_RIGHT_POS = 0.51;
@@ -26,8 +26,10 @@ public class SkyTeleOp extends LinearOpMode {
     final double ARM_GRABBER_POS_MIN = 0.005;
 
     final int SERVO_SLEEP_INTERVAL = 10;
+    final double SERVO_POS_INTERVAL = 0.007;
 
-    ElapsedTime pushServoDelayElapsedTime = null;
+    final double PITCH_INITIAL_POS = 0.68;
+    final double GRABBER_INITIAL_POS = 0.23;
 
     private DcMotor rightFront;
     private DcMotor rightBack;
@@ -43,6 +45,8 @@ public class SkyTeleOp extends LinearOpMode {
     private Servo pitch;
     private Servo armGrabber;
     private Servo push;
+    private Servo sideGrabber;
+    private Servo capstone;
     private TouchSensor switch_TouchSensor;
 
     /**
@@ -65,6 +69,8 @@ public class SkyTeleOp extends LinearOpMode {
         pitch = hardwareMap.servo.get("pitch");
         push = hardwareMap.servo.get("push");
         armGrabber = hardwareMap.servo.get("armGrabber");
+        sideGrabber = hardwareMap.servo.get("sideGrabber");
+        capstone = hardwareMap.servo.get("capstone");
         switch_TouchSensor = hardwareMap.touchSensor.get("switch");
         // Put initialization blocks here.
 
@@ -97,10 +103,10 @@ public class SkyTeleOp extends LinearOpMode {
 
             // Put run blocks here.
             yaw.setPosition(0);
-            armGrabber.setPosition(0.1839);
-            pitch.setPosition(0.72);
+            armGrabber.setPosition(GRABBER_INITIAL_POS);
+            pitch.setPosition(PITCH_INITIAL_POS);
             push.setPosition(1);
-
+            sideGrabber.setPosition(0);
 
             while (opModeIsActive() || !isStopRequested()) {
                 float swingSpeed = gamepad2.left_stick_y;
@@ -157,26 +163,25 @@ public class SkyTeleOp extends LinearOpMode {
                 if (gamepad1.a) {
                     hookLeft.setPosition(HOOK_POS_UP);
                     hookRight.setPosition(HOOK_POS_UP);
-                } else if (gamepad1.b) {
+                }
+                if (gamepad1.b) {
                     hookLeft.setPosition(HOOK_POS_DOWN);
                     hookRight.setPosition(HOOK_POS_DOWN);
-                } else {
-                    // do nothing
                 }
 
                 //Arm Movement
                 if (swingSpeed > 0) {  // ARM MOVING DOWN
                     if (switch_TouchSensor.isPressed()) {
                         swing.setPower(0);
-                        pitch.setPosition(0.72);
-                        armGrabber.setPosition(0.1839);
+                        pitch.setPosition(PITCH_INITIAL_POS);
+                        armGrabber.setPosition(GRABBER_INITIAL_POS);
                     } else {
                         if (yaw.getPosition() > 0.9) {
                             pitch.setPosition(PITCH_RIGHT_POS + (swing.getCurrentPosition() - initialPosition) / SWING_POS_DIVISOR);
                         } else {
                             pitch.setPosition(PITCH_LEFT_POS - (swing.getCurrentPosition() - initialPosition) / SWING_POS_DIVISOR);
                         }
-                        swing.setPower(swingSpeed * -0.3);
+                        swing.setPower(swingSpeed * SWING_POWER_MULTIPLIER);
                     }
                 } else if (swingSpeed < 0) {   // ARM MOVING UP
                     if (yaw.getPosition() > 0.9) {
@@ -184,81 +189,80 @@ public class SkyTeleOp extends LinearOpMode {
                     } else {
                         pitch.setPosition(PITCH_LEFT_POS - (swing.getCurrentPosition() - initialPosition) / SWING_POS_DIVISOR);
                     }
-                    swing.setPower(swingSpeed * -0.3);
+                    swing.setPower(swingSpeed * SWING_POWER_MULTIPLIER);
                 } else {
                     swing.setPower(0);
                 }
 
                 extend.setPower(extendSpeed * 0.5);
-                //Arm Servos (Yaw, Grabber, Pitch)
 
                 if (gamepad2.a) {
-                    swing.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                    swing.setPower(0.4);
-                    // move the arm to horizontal position
-                    swing.setTargetPosition(1000);
-                    while (swing.isBusy() && !isStopRequested()) {
-                        sleep(50);
-                        pitch.setPosition(PITCH_LEFT_POS - (swing.getCurrentPosition() - initialPosition) / SWING_POS_DIVISOR);
+                    if (pitch.getPosition() != PITCH_RIGHT_POS + 0.11) {
+                        pitch.setPosition(PITCH_RIGHT_POS + 0.11);
                     }
-                    swing.setPower(0);
-                    swing.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-                    pitch.setPosition(PITCH_RIGHT_POS + 0.11);
-                    while (!(yaw.getPosition() == 1) && !isStopRequested()) {
-                        yaw.setPosition(yaw.getPosition() + 0.02);
-                        sleep(50);
-                        telemetry.update();
+                    if (!(yaw.getPosition() == 1)) {
+                        yaw.setPosition(yaw.getPosition() + SERVO_POS_INTERVAL);
+                        sleep(SERVO_SLEEP_INTERVAL);
                     }
                 }
+
                 if (gamepad2.b) {
-                    if (!(yaw.getPosition() < 0.005)) {
-                        yaw.setPosition(yaw.getPosition() - 0.005);
+                    if (!(yaw.getPosition() == 0)) {
+                        yaw.setPosition(yaw.getPosition() - SERVO_POS_INTERVAL);
                         sleep(SERVO_SLEEP_INTERVAL);
                     }
                 }
 
                 if (gamepad2.x) {
                     pitch.setPosition(0.82);
-                    armGrabber.setPosition(0.013);
+                    armGrabber.setPosition(0.011);
                     if (push.getPosition() != PUSH_POS_UP) {
                         sleep(50);
                         push.setPosition(PUSH_POS_UP);
                     }
                 }
+                if (gamepad2.left_bumper) {
+                    capstone.setPosition(0.4594);
+                }
+                if (gamepad2.left_trigger > 0) {
+                    capstone.setPosition(0.98);
+                }
+
+                if (gamepad2.right_bumper) {
+                    sideGrabber.setPosition(1);
+                }
+                if (gamepad2.right_trigger > 0) {
+                    sideGrabber.setPosition(0);
+                }
 
                 telemetry.update();
                 if (gamepad2.dpad_left) {
                     if (!(armGrabber.getPosition() > ARM_GRABBER_POS_MAX)) {
-                        armGrabber.setPosition(armGrabber.getPosition() + 0.005);
+                        armGrabber.setPosition(armGrabber.getPosition() + SERVO_POS_INTERVAL);
                         sleep(SERVO_SLEEP_INTERVAL);
                     }
                 }
                 if (gamepad2.dpad_right) {
                     if (!(armGrabber.getPosition() < ARM_GRABBER_POS_MIN)) {
-                        armGrabber.setPosition(armGrabber.getPosition() - 0.005);
+                        armGrabber.setPosition(armGrabber.getPosition() - SERVO_POS_INTERVAL);
                         sleep(SERVO_SLEEP_INTERVAL);
                     }
                 }
 
                 if (gamepad2.dpad_down) {
-                    if (!(pitch.getPosition() > 0.99)) {
-                        pitch.setPosition(pitch.getPosition() + 0.005);
+                    if (!(pitch.getPosition() == 1)) {
+                        pitch.setPosition(pitch.getPosition() + SERVO_POS_INTERVAL);
                         sleep(SERVO_SLEEP_INTERVAL);
                     }
                 }
                 if (gamepad2.dpad_up) {
-                    if (!(pitch.getPosition() < 0.005)){
-                        pitch.setPosition(pitch.getPosition() - 0.005);
+                    if (!(pitch.getPosition() == 0)){
+                        pitch.setPosition(pitch.getPosition() - SERVO_POS_INTERVAL);
                         sleep(SERVO_SLEEP_INTERVAL);
                     }
 
                 }
-
-                //if (gamepad2.y) {
-                //swing.setTargetPosition(0);
-                // TODO extend.setTargetPosition(0);
-                //yaw.setPosition(0);
             }
             telemetry.addData("push", push.getPosition());
             telemetry.addData("Left Joy value", gamepad2.left_stick_y);
