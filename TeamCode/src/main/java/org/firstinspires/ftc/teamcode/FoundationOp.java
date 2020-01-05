@@ -19,7 +19,8 @@ public class FoundationOp extends LinearOpMode {
     final double ROTATION_MOTOR_POWER = 0.8;
 
     private final double HOOK_POS_UP = 1.0;
-    private final double HOOK_POS_DOWN = 0;
+    private final double HOOK_POS_DOWN = 0.28;
+    private final double HOOK_LOCK = 0;
 
     OdometryGlobalCoordinatePosition globalPositionUpdate;
 
@@ -35,6 +36,7 @@ public class FoundationOp extends LinearOpMode {
     private DistanceSensor distanceFront;
     private Servo hookLeft;
     private Servo hookRight;
+    private Servo yaw;
 
     @Override
     public void runOpMode() {
@@ -45,10 +47,15 @@ public class FoundationOp extends LinearOpMode {
         leftBack = hardwareMap.dcMotor.get("leftBack");
         hookLeft = hardwareMap.servo.get("hookLeft");
         hookRight = hardwareMap.servo.get("hookRight");
+        yaw = hardwareMap.servo.get("yaw");
         distanceFront = hardwareMap.get(DistanceSensor.class, "distanceFront");
         leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
         leftBack.setDirection(DcMotorSimple.Direction.REVERSE);
         hookLeft.setDirection(Servo.Direction.REVERSE);
+
+        hookLeft.setPosition(HOOK_LOCK);
+        hookRight.setPosition(HOOK_LOCK);
+        yaw.setPosition(0);
 
         waitForStart();
 
@@ -65,24 +72,41 @@ public class FoundationOp extends LinearOpMode {
             hookRight.setPosition(HOOK_POS_UP);
 
             if (loc == RobotLocation.BLUE_FOUNDATION) {
-                navigator.goToPosition(-15, 0, MOTOR_POWER, 0, 1);
-                navigator.goToPosition(-15, 28, 0.5, 0, 1);
+                navigator.goToPosition(-17, 0, MOTOR_POWER, 0, 1);
+                navigator.goToPosition(-17, 22, 0.5, 0, 1);
+                navigator.stop();
+                sleep(100);
+                double distance = (distanceFront.getDistance(DistanceUnit.INCH) - 4);
+                /*
+                while (opModeIsActive()) {
+                    sleep(100);
+                    telemetry.addData("distance", distance);
+                    telemetry.update();
+                }
+                */
+                navigator.goToPosition(-17, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH + distance, 0.3, 0, 1);
                 hookLeft.setPosition(HOOK_POS_DOWN);
                 hookRight.setPosition(HOOK_POS_DOWN);
                 sleep(500);
-                navigator.goToPosition(-15, 14, 0.8, 0, 1);
+                navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH + 2, 20, 0.8, -15, 1);
                 navigator.pivotToOrientation(-90, ROTATION_MOTOR_POWER, 5);
-                navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH - 6.0, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, 0.7, -90, 1);
+                //navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH - 6.0, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, 0.7, -90, 1);
                 hookLeft.setPosition(HOOK_POS_UP);
                 hookRight.setPosition(HOOK_POS_UP);
-                navigator.goToPosition(45, 15, MOTOR_POWER, -90, 2);
+                navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, 15, MOTOR_POWER, -90, 1);
+                navigator.goToPosition(40, 15, MOTOR_POWER, -90, 2);
+
 
 
 
 
             } else {
                 navigator.goToPosition(15, 0, MOTOR_POWER, 0, 1);
-                navigator.goToPosition(15, 28, MOTOR_POWER, 0, 1);
+                navigator.goToPosition(15, 22, MOTOR_POWER, 0, 1);
+                navigator.stop();
+                sleep(100);
+                double distance = (distanceFront.getDistance(DistanceUnit.INCH) - 4);
+                navigator.goToPosition(15, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH + distance, MOTOR_POWER, 0, 1);
                 hookLeft.setPosition(HOOK_POS_DOWN);
                 hookRight.setPosition(HOOK_POS_DOWN);
                 sleep(500);
