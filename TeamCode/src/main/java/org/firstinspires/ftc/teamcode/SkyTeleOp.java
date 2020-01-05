@@ -173,21 +173,31 @@ public class SkyTeleOp extends LinearOpMode {
                 if (swingSpeed > 0) {  // ARM MOVING DOWN
                     if (switch_TouchSensor.isPressed()) {
                         swing.setPower(0);
-                        pitch.setPosition(PITCH_INITIAL_POS);
-                        armGrabber.setPosition(GRABBER_INITIAL_POS);
+                        if (!gamepad2.y) {
+                            pitch.setPosition(PITCH_INITIAL_POS);
+                            armGrabber.setPosition(GRABBER_INITIAL_POS);
+                        }
                     } else {
                         if (yaw.getPosition() > 0.9) {
-                            pitch.setPosition(PITCH_RIGHT_POS + (swing.getCurrentPosition() - initialPosition) / SWING_POS_DIVISOR);
+                            if (!gamepad2.y) {
+                                pitch.setPosition(PITCH_RIGHT_POS + (swing.getCurrentPosition() - initialPosition) / SWING_POS_DIVISOR);
+                            }
                         } else {
-                            pitch.setPosition(PITCH_LEFT_POS - (swing.getCurrentPosition() - initialPosition) / SWING_POS_DIVISOR);
+                            if (!gamepad2.y) {
+                                pitch.setPosition(PITCH_LEFT_POS - (swing.getCurrentPosition() - initialPosition) / SWING_POS_DIVISOR);
+                            }
                         }
                         swing.setPower(swingSpeed * SWING_POWER_MULTIPLIER);
                     }
                 } else if (swingSpeed < 0) {   // ARM MOVING UP
                     if (yaw.getPosition() > 0.9) {
-                        pitch.setPosition(PITCH_RIGHT_POS + (swing.getCurrentPosition() - initialPosition) / SWING_POS_DIVISOR);
+                        if (!gamepad2.y) {
+                            pitch.setPosition(PITCH_RIGHT_POS + (swing.getCurrentPosition() - initialPosition) / SWING_POS_DIVISOR);
+                        }
                     } else {
-                        pitch.setPosition(PITCH_LEFT_POS - (swing.getCurrentPosition() - initialPosition) / SWING_POS_DIVISOR);
+                        if (!gamepad2.y) {
+                            pitch.setPosition(PITCH_LEFT_POS - (swing.getCurrentPosition() - initialPosition) / SWING_POS_DIVISOR);
+                        }
                     }
                     swing.setPower(swingSpeed * SWING_POWER_MULTIPLIER);
                 } else {
