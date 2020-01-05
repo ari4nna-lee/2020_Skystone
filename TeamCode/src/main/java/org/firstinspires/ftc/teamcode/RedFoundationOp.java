@@ -12,8 +12,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.drivetrain.Navigator;
 import org.firstinspires.ftc.teamcode.odometry.OdometryGlobalCoordinatePosition;
 
-@Autonomous(name = "FoundationOp(Studio)", group = "")
-public class FoundationOp extends LinearOpMode {
+@Autonomous(name = "RedFoundationOp(Studio)", group = "")
+public class RedFoundationOp extends LinearOpMode {
     final double COUNTS_PER_INCH = 306.382254;
     final double MOTOR_POWER = 0.7;
     final double ROTATION_MOTOR_POWER = 0.8;
@@ -101,21 +101,22 @@ public class FoundationOp extends LinearOpMode {
 
 
             } else {
-                navigator.goToPosition(15, 0, MOTOR_POWER, 0, 1);
-                navigator.goToPosition(15, 22, MOTOR_POWER, 0, 1);
+                navigator.goToPosition(17, 0, MOTOR_POWER, 0, 1);
+                navigator.goToPosition(17, 22, MOTOR_POWER, 0, 1);
                 navigator.stop();
                 sleep(100);
                 double distance = (distanceFront.getDistance(DistanceUnit.INCH) - 4);
-                navigator.goToPosition(15, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH + distance, MOTOR_POWER, 0, 1);
+                navigator.goToPosition(17, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH + distance, 0.3, 0, 1);
                 hookLeft.setPosition(HOOK_POS_DOWN);
                 hookRight.setPosition(HOOK_POS_DOWN);
                 sleep(500);
-                navigator.goToPosition(15, 16, MOTOR_POWER, 0, 1);
+                navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH - 2, 20, MOTOR_POWER, 15, 1);
                 navigator.pivotToOrientation(90, ROTATION_MOTOR_POWER, 5);
-                navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH + 6.0, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, 0.7, 90, 1);
                 hookLeft.setPosition(HOOK_POS_UP);
                 hookRight.setPosition(HOOK_POS_UP);
                 sleep(500);
+                navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH + 2, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, MOTOR_POWER, 90, 1);
+                navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, 15, MOTOR_POWER, 90, 1);
                 navigator.goToPosition(-40, 15, MOTOR_POWER, 90, 1);
             }
 
@@ -177,7 +178,7 @@ public class FoundationOp extends LinearOpMode {
 
     private RobotLocation getLocation() {
         // TODO - use vuforia to locate the robot
-        return RobotLocation.BLUE_FOUNDATION;
+        return RobotLocation.RED_FOUNDATION;
     }
 }
 
