@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -117,6 +118,17 @@ public class Navigator {
 
             telemetry.addData("Orientation", globalPositionUpdate.returnOrientation());
             telemetry.update();
+        }
+        stop();
+    }
+
+    public void tankDrive(double leftPower, double rightPower, double durationInMillisSeconds) {
+        ElapsedTime elapsedTime = new ElapsedTime();
+        while (opMode.opModeIsActive() && !opMode.isStopRequested() && (elapsedTime.milliseconds() < durationInMillisSeconds)) {
+            left_front.setPower(leftPower);
+            right_front.setPower(rightPower);
+            left_back.setPower(leftPower);
+            right_back.setPower(rightPower);
         }
         stop();
     }
