@@ -23,11 +23,6 @@ public class BlueFoundationOp extends LinearOpMode {
 
     OdometryGlobalCoordinatePosition globalPositionUpdate;
 
-    enum RobotLocation {
-        BLUE_FOUNDATION,
-        RED_FOUNDATION
-    }
-
     private DcMotor rightFront;
     private DcMotor rightBack;
     private DcMotor leftFront;
@@ -66,62 +61,33 @@ public class BlueFoundationOp extends LinearOpMode {
         positionThread.start();
 
         if (opModeIsActive()) {
-            RobotLocation loc = getLocation();
             hookLeft.setPosition(HOOK_POS_UP);
             hookRight.setPosition(HOOK_POS_UP);
 
-            if (loc == RobotLocation.BLUE_FOUNDATION) {
-                navigator.goToPosition(-17, 0, MOTOR_POWER, 0, 1);
-                navigator.goToPosition(-17, 22, 0.5, 0, 1);
-                navigator.stop();
-                sleep(100);
-                double distance = (distanceFront.getDistance(DistanceUnit.INCH) - 4);
-                /*
-                while (opModeIsActive()) {
-                    sleep(100);
-                    telemetry.addData("distance", distance);
-                    telemetry.update();
-                }
-                */
-                navigator.goToPosition(-17, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH + distance, 0.3, 0, 1);
-                hookLeft.setPosition(HOOK_POS_DOWN);
-                hookRight.setPosition(HOOK_POS_DOWN);
-                sleep(500);
-                navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH + 2, 20, 0.8, -15, 1);
-                navigator.pivotToOrientation(-90, ROTATION_MOTOR_POWER, 5);
-                //navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH - 6.0, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, 0.7, -90, 1);
-                hookLeft.setPosition(HOOK_POS_UP);
-                hookRight.setPosition(HOOK_POS_UP);
-                navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH -2, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, MOTOR_POWER, -90, 1);
-                navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, 15, MOTOR_POWER, -90, 1);
-                navigator.goToPosition(40, 15, MOTOR_POWER, -90, 2);
+            navigator.goToPosition(-17, 0, MOTOR_POWER, 0, 1);
+            navigator.goToPosition(-17, 22, 0.5, 0, 1);
+            navigator.stop();
+            sleep(100);
+            double distance = (distanceFront.getDistance(DistanceUnit.INCH) - 4);
 
+            navigator.goToPosition(-17, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH + distance, 0.3, 0, 1);
+            hookLeft.setPosition(HOOK_POS_DOWN);
+            hookRight.setPosition(HOOK_POS_DOWN);
+            sleep(500);
+            //navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH + 2, 20, 0.8, -15, 1);
+            navigator.tankDrive(-1.0, -0.35, 1000);
+            navigator.pivotToOrientation(-90, ROTATION_MOTOR_POWER, 5);
+            //navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH - 6.0, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, 0.7, -90, 1);
+            hookLeft.setPosition(HOOK_POS_UP);
+            hookRight.setPosition(HOOK_POS_UP);
+            navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH - 2, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, MOTOR_POWER, -90, 1);
+            navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, 15, MOTOR_POWER, -90, 1);
+            navigator.goToPosition(40, 15, MOTOR_POWER, -90, 2);
 
-
-
-
-            } else {
-                navigator.goToPosition(15, 0, MOTOR_POWER, 0, 1);
-                navigator.goToPosition(15, 22, MOTOR_POWER, 0, 1);
-                navigator.stop();
-                sleep(100);
-                double distance = (distanceFront.getDistance(DistanceUnit.INCH) - 4);
-                navigator.goToPosition(15, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH + distance, MOTOR_POWER, 0, 1);
-                hookLeft.setPosition(HOOK_POS_DOWN);
-                hookRight.setPosition(HOOK_POS_DOWN);
-                sleep(500);
-                navigator.goToPosition(15, 16, MOTOR_POWER, 0, 1);
-                navigator.pivotToOrientation(90, ROTATION_MOTOR_POWER, 5);
-                navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH + 6.0, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, 0.7, 90, 1);
-                hookLeft.setPosition(HOOK_POS_UP);
-                hookRight.setPosition(HOOK_POS_UP);
-                sleep(500);
-                navigator.goToPosition(-40, 15, MOTOR_POWER, 90, 1);
-            }
 
             navigator.stop();
 
-            while(opModeIsActive()){
+            while (opModeIsActive()) {
                 //Display Global (x, y, theta) coordinates
                 telemetry.addData("X Position", globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH);
                 telemetry.addData("Y Position", globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH);
@@ -131,53 +97,7 @@ public class BlueFoundationOp extends LinearOpMode {
                 telemetry.update();
             }
             globalPositionUpdate.stop();
-            /*
-
-            ElapsedTime runtime = new ElapsedTime();
-            hookLeft.setPosition(1);
-            hookRight.setPosition(1);
-
-
-            while (runtime.seconds() < 3 && (!isStopRequested())) {
-                drive(0, -0.8, 0);
-                sleep(50);
-            }
-            drive(0, 0, 0);
-            while (!(distanceFront.getDistance(DistanceUnit.CM) <= 15) && (!isStopRequested())) {
-                drive(0.5, 0, 0);
-            }
-            // drive(0, 0, 0);
-            stopRobot();
-            hookLeft.setPosition(0);
-            hookRight.setPosition(0);
-            sleep(1000);
-
-            runtime = new ElapsedTime();
-            while (runtime.seconds() < 2 && (!isStopRequested())) {
-                drive(-0.7, 0.7, 0);
-            }
-            // drive(0, 0, 0);
-            stopRobot();
-            runtime = new ElapsedTime();
-            while (runtime.seconds() < 1.5 && !isStopRequested()) {
-                drive(0, 0, -1);
-            }
-            // drive(0, 0, 0);
-            stopRobot();
-            runtime = new ElapsedTime();
-            while (runtime.seconds() < 1 && !isStopRequested()) {
-                drive(0.5, 0, 0);
-            }
-            // drive(0, 0, 0);
-            stopRobot(); */
-
         }
-
-    }
-
-    private RobotLocation getLocation() {
-        // TODO - use vuforia to locate the robot
-        return RobotLocation.BLUE_FOUNDATION;
     }
 }
 
