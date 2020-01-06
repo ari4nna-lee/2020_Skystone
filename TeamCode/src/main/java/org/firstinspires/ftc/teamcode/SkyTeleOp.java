@@ -26,10 +26,14 @@ public class SkyTeleOp extends LinearOpMode {
     final double ARM_GRABBER_POS_MIN = 0.005;
 
     final int SERVO_SLEEP_INTERVAL = 10;
-    final double SERVO_POS_INTERVAL = 0.007;
+    final double SERVO_POS_INTERVAL = 0.01;
 
     final double PITCH_INITIAL_POS = 0.68;
     final double GRABBER_INITIAL_POS = 0.23;
+
+    final double YAW_MIN_POS = 0.0;
+    final double YAW_UP_POS = 0.24;
+    final double YAW_MAX_POS = 1.0;
 
     private DcMotor rightFront;
     private DcMotor rightBack;
@@ -171,6 +175,11 @@ public class SkyTeleOp extends LinearOpMode {
 
                 //Arm Movement
                 if (swingSpeed > 0) {  // ARM MOVING DOWN
+                    // set the 'Yaw' server position
+                    if (yaw.getPosition() < YAW_UP_POS) {
+                        yaw.setPosition(YAW_UP_POS);
+                    }
+
                     if (switch_TouchSensor.isPressed()) {
                         swing.setPower(0);
                         if (!gamepad2.y) {
@@ -190,6 +199,16 @@ public class SkyTeleOp extends LinearOpMode {
                         swing.setPower(swingSpeed * SWING_POWER_MULTIPLIER);
                     }
                 } else if (swingSpeed < 0) {   // ARM MOVING UP
+                    // bring the 'Push' servo to 'up' position
+                    if (push.getPosition() != PUSH_POS_UP) {
+                        push.setPosition(PUSH_POS_UP);
+                    }
+
+                    // set the 'Yaw' server position
+                    if (yaw.getPosition() < YAW_UP_POS) {
+                        yaw.setPosition(YAW_UP_POS);
+                    }
+
                     if (yaw.getPosition() > 0.9) {
                         if (!gamepad2.y) {
                             pitch.setPosition(PITCH_RIGHT_POS + (swing.getCurrentPosition() - initialPosition) / SWING_POS_DIVISOR);
@@ -216,14 +235,14 @@ public class SkyTeleOp extends LinearOpMode {
                         pitch.setPosition(PITCH_RIGHT_POS + 0.11);
                     }
 
-                    if (!(yaw.getPosition() == 1)) {
+                    if (!(yaw.getPosition() == YAW_MAX_POS)) {
                         yaw.setPosition(yaw.getPosition() + SERVO_POS_INTERVAL);
                         sleep(SERVO_SLEEP_INTERVAL);
                     }
                 }
 
                 if (gamepad2.b) {
-                    if (!(yaw.getPosition() == 0)) {
+                    if (!(yaw.getPosition() <= YAW_UP_POS)) {
                         yaw.setPosition(yaw.getPosition() - SERVO_POS_INTERVAL);
                         sleep(SERVO_SLEEP_INTERVAL);
                     }
@@ -231,12 +250,10 @@ public class SkyTeleOp extends LinearOpMode {
 
                 if (gamepad2.x) {
                     pitch.setPosition(0.82);
-                    armGrabber.setPosition(0.011);
-                    if (push.getPosition() != PUSH_POS_UP) {
-                        sleep(50);
-                        push.setPosition(PUSH_POS_UP);
-                    }
+                    sleep(30);
+                    armGrabber.setPosition(0.010);
                 }
+
                 if (gamepad2.left_bumper) {
                     capstone.setPosition(0.4594);
                 }
