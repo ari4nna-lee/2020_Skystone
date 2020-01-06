@@ -116,29 +116,13 @@ public class SkyTeleOp extends LinearOpMode {
                 float swingSpeed = gamepad2.left_stick_y;
                 float extendSpeed = gamepad2.right_stick_y;
 
-                float rawX = gamepad1.left_stick_x;
-                float rawLeftTrigger = gamepad1.right_trigger;
-                float rawRightTrigger = gamepad1.left_trigger;
-                if (rawLeftTrigger > 0) {
-                    rawX = rawLeftTrigger;
+                // By default using Mecanum drive control
+                // Holding Gamepad1 'Start' button to use Tank Drive mode
+                if (gamepad1.start) {
+                    tankDrive();
+                } else {
+                    mecanumDrive();
                 }
-                if (rawRightTrigger > 0) {
-                    rawX = rawRightTrigger * -1;
-                }
-
-                // Mecanum Drive
-                double r = Math.hypot(rawX, gamepad1.left_stick_y * -1);
-                double robotAngle = Math.atan2(gamepad1.left_stick_y * -1, rawX) - Math.PI / 4;
-                double rightX = gamepad1.right_stick_x;
-
-                double lFront = (r * Math.cos(robotAngle) + rightX) * POWER_MULTIPLIER;
-                double rFront = (r * Math.sin(robotAngle) - rightX) * POWER_MULTIPLIER;
-                double lRear = (r * Math.sin(robotAngle) + rightX) * POWER_MULTIPLIER;
-                double rRear = (r * Math.cos(robotAngle) - rightX) * POWER_MULTIPLIER;
-                leftFront.setPower(lFront);
-                rightFront.setPower(rFront);
-                leftBack.setPower(lRear);
-                rightBack.setPower(rRear);
 
                 //Intake System
                 if (gamepad1.left_bumper) {
@@ -222,6 +206,7 @@ public class SkyTeleOp extends LinearOpMode {
                 } else {
                     swing.setPower(0);
                 }
+
                 if (extend.getCurrentPosition() < -100 || swing.getCurrentPosition() > 1500) {
                     sideGrabber.setPosition(0.35);
                 } else {
@@ -306,6 +291,42 @@ public class SkyTeleOp extends LinearOpMode {
             }
 
         }
+    }
+
+    // Tank drive mode
+    private void tankDrive() {
+        double leftPower = gamepad1.left_stick_y * -1;
+        double rightPower = gamepad1.right_stick_y * -1;
+        leftFront.setPower(leftPower);
+        leftBack.setPower(leftPower);
+        rightFront.setPower(rightPower);
+        rightBack.setPower(rightPower);
+    }
+
+    // Mecanum Drive
+    private void mecanumDrive() {
+        float rawX = gamepad1.left_stick_x;
+        float rawLeftTrigger = gamepad1.right_trigger;
+        float rawRightTrigger = gamepad1.left_trigger;
+        if (rawLeftTrigger > 0) {
+            rawX = rawLeftTrigger;
+        }
+        if (rawRightTrigger > 0) {
+            rawX = rawRightTrigger * -1;
+        }
+
+        double r = Math.hypot(rawX, gamepad1.left_stick_y * -1);
+        double robotAngle = Math.atan2(gamepad1.left_stick_y * -1, rawX) - Math.PI / 4;
+        double rightX = gamepad1.right_stick_x;
+
+        double lFront = (r * Math.cos(robotAngle) + rightX) * POWER_MULTIPLIER;
+        double rFront = (r * Math.sin(robotAngle) - rightX) * POWER_MULTIPLIER;
+        double lRear = (r * Math.sin(robotAngle) + rightX) * POWER_MULTIPLIER;
+        double rRear = (r * Math.cos(robotAngle) - rightX) * POWER_MULTIPLIER;
+        leftFront.setPower(lFront);
+        rightFront.setPower(rFront);
+        leftBack.setPower(lRear);
+        rightBack.setPower(rRear);
     }
 }
 
