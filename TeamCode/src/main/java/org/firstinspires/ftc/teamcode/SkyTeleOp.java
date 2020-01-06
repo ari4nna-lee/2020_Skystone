@@ -222,7 +222,7 @@ public class SkyTeleOp extends LinearOpMode {
                 } else {
                     swing.setPower(0);
                 }
-                if (extend.getCurrentPosition() < -100) {
+                if (extend.getCurrentPosition() < -100 || swing.getCurrentPosition() > 1500) {
                     sideGrabber.setPosition(0.35);
                 } else {
                     sideGrabber.setPosition(0);
