@@ -18,7 +18,7 @@ public class RedFoundationOp extends LinearOpMode {
     final double ROTATION_MOTOR_POWER = 0.8;
 
     private final double HOOK_POS_UP = 1.0;
-    private final double HOOK_POS_DOWN = 0.28;
+    private final double HOOK_POS_DOWN = 0.2;
     private final double HOOK_LOCK = 0;
 
     OdometryGlobalCoordinatePosition globalPositionUpdate;
@@ -64,24 +64,27 @@ public class RedFoundationOp extends LinearOpMode {
             hookLeft.setPosition(HOOK_POS_UP);
             hookRight.setPosition(HOOK_POS_UP);
 
-            navigator.goToPosition(17, 0, MOTOR_POWER, 0, 1);
-            navigator.goToPosition(17, 22, MOTOR_POWER, 0, 1);
+            navigator.goToPosition(17, 0, 0.6, 0, 1);
+            navigator.goToPosition(17, 22, 0.5, 0, 1);
             navigator.stop();
             sleep(100);
             double distance = (distanceFront.getDistance(DistanceUnit.INCH) - 4);
+
             navigator.goToPosition(17, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH + distance, 0.3, 0, 1);
             hookLeft.setPosition(HOOK_POS_DOWN);
             hookRight.setPosition(HOOK_POS_DOWN);
             sleep(500);
-            // navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, 20, MOTOR_POWER, 0, 1);
-            navigator.tankDrive(-0.35, -1.0, 1000);
-            navigator.pivotToOrientation(90, ROTATION_MOTOR_POWER, 5);
+
+            navigator.tankDrive(-0.4, -1.0, 1500);
+            navigator.pivotToOrientation(93, ROTATION_MOTOR_POWER, 5);
+
             hookLeft.setPosition(HOOK_POS_UP);
             hookRight.setPosition(HOOK_POS_UP);
             sleep(500);
+
             navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH + 2, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, MOTOR_POWER, 90, 1);
-            navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, 15, MOTOR_POWER, 90, 1);
-            navigator.goToPosition(-40, 15, MOTOR_POWER, 90, 1);
+            navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, 14, MOTOR_POWER, 90, 1);
+            navigator.goToPosition(-40, 14, MOTOR_POWER, 90, 2);
 
             navigator.stop();
 
