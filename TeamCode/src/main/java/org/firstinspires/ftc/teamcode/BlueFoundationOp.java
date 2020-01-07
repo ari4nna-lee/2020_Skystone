@@ -96,8 +96,8 @@ public class BlueFoundationOp extends LinearOpMode {
                 telemetry.addData("Thread Active", positionThread.isAlive());
                 telemetry.update();
             }
-            globalPositionUpdate.stop();
         }
+        globalPositionUpdate.stop();
     }
 }
 
