@@ -65,6 +65,7 @@ public class LoadingOp extends LinearOpMode {
     private VuforiaLocalizer vuforia = null;
     private VuforiaTrackables targetsSkyStone = null;
     private List<VuforiaTrackable> allTrackables = new ArrayList<>();
+    Navigator navigator = null;
 
     private float phoneXRotate = 0;
     private float phoneYRotate = 0;
@@ -99,15 +100,15 @@ public class LoadingOp extends LinearOpMode {
 
 
         // create robot Navigator
-        Navigator navigator = new Navigator(this);
+        navigator = new Navigator(this);
         // start GlobalCoordinatePosition thread to constantly update the global coordinate positions
         globalPositionUpdate = navigator.getGlobalPositionRunnable();
         Thread positionThread = new Thread(globalPositionUpdate);
         positionThread.start();
 
         if (opModeIsActive()) {
-            //1. Move to 12 inches in front of stone wall
-            navigator.goToPosition(-12, 0, MOTOR_POWER, 0, 1);
+            //1. Move to about 10 inches in front of stone wall
+            navigator.goToPosition(-21, 0, MOTOR_POWER, 0, 1);
             navigator.stop();
 
             //2. Call getSkystoneLocation
@@ -115,36 +116,38 @@ public class LoadingOp extends LinearOpMode {
             targetsSkyStone.activate();
             telemetry.addData("before ", "getSkystoneLocation");
             telemetry.update();
-            SkystoneLocation skystoneLocation = getSkystoneLocation(allTrackables);
+            double yValue = getSkystoneYValue(allTrackables);
+            double offset = Math.abs(yValue) / mmPerInch;
+            SkystoneLocation skystoneLocation = getSkystoneLocation(yValue);
+            telemetry.addData("Y value", yValue);
             telemetry.addData("Time needed in ms", elapsedTime.milliseconds());
 
+            // RED LOADING side
             if (skystoneLocation == SkystoneLocation.FIRST) {
-                telemetry.addData("Skystone located", "RIRST");
-                /*
+                telemetry.addData("Skystone located", "FIRST");
+                // move slowly
+                navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH,
+                        globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH -(offset + 1.0), 0.5,0, 1);
+
                 double distance = distanceLeft.getDistance(DistanceUnit.INCH);
+                double nextYTarget = globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH + 23;
                 navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH - distance, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, 0.5, 0, 1);
-                sleep(1000);
-                sideGrabber.setPosition(1);
-                sleep(500);
-                navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH + 8, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, MOTOR_POWER, 0, 1);
-                navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, 46, MOTOR_POWER, 0, 1);
-                sideGrabber.setPosition(0);
-                sleep(500);
-                navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, -18, MOTOR_POWER, 0, 1);
-                navigator.goToPosition(-27, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, MOTOR_POWER, 0, 1);
+
+                grabAndMoveStone();
+
+                // move forward to next Skystone
+                navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, nextYTarget, MOTOR_POWER, 0, 1);
                 navigator.stop();
-                sleep(100);
+
                 distance = distanceLeft.getDistance(DistanceUnit.INCH);
-                navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH - distance, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, MOTOR_POWER, 0, 1);
-                sideGrabber.setPosition(1);
-                sleep(500);
-                navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH + 8, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, MOTOR_POWER, 0, 1);
-                navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, 46, MOTOR_POWER, 0, 1);
-                sideGrabber.setPosition(0);
-                sleep(500);
-                navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, 35, MOTOR_POWER, 0, 1);
-                sleep(500);
-               */
+                navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH - distance, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, 0.5, 0, 1);
+                navigator.stop();
+
+                grabAndMoveStone();
+
+                navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH + 3, -35, MOTOR_POWER, 0, 1);
+
+                navigator.stop();
             } else if (skystoneLocation == SkystoneLocation.SECOND) {
                 // do 2nd
                 telemetry.addData("Skystone located", "SECOND");
@@ -152,6 +155,7 @@ public class LoadingOp extends LinearOpMode {
                 // do 3rd routine
                 telemetry.addData("Skystone located", "THIRD");
             }
+            telemetry.addData("side servo pos", sideGrabber.getPosition());
             telemetry.update();
 
 
@@ -275,13 +279,34 @@ public class LoadingOp extends LinearOpMode {
         telemetry.update();
     }
 
-    private SkystoneLocation getSkystoneLocation(List<VuforiaTrackable> allTrackables) {
+
+    private void grabAndMoveStone() {
+        sideGrabber.setPosition(1);
+        navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH - 1, 0.5, 0, 0.5);
+        navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH + 8, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, MOTOR_POWER, 0, 1);
+        navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, -46, MOTOR_POWER, 0, 1);
+        sideGrabber.setPosition(0);
+    }
+    private SkystoneLocation getSkystoneLocation(double offset) {
+        if (offset == 1000.0) {
+            return SkystoneLocation.THIRD;
+        }
+        if (offset < 0) {
+            return SkystoneLocation.FIRST;
+        } else {
+            return SkystoneLocation.SECOND;
+        }
+    }
+
+    private double getSkystoneYValue(List<VuforiaTrackable> allTrackables) {
+        double yValue = 1000.0;
+
         SkystoneLocation skystoneLocation = SkystoneLocation.THIRD;
 
         ElapsedTime elapsedTime = new ElapsedTime();
         boolean targetVisible = false;
 
-        while (!isStopRequested() &&  !targetVisible && (elapsedTime.milliseconds() < 200)) {
+        while (!isStopRequested() &&  !targetVisible && (elapsedTime.milliseconds() < 2000)) {
 
             // check all the trackable targets to see which one (if any) is visible.
             targetVisible = false;
@@ -311,19 +336,12 @@ public class LoadingOp extends LinearOpMode {
                 Orientation rotation = Orientation.getOrientation(lastLocation, EXTRINSIC, XYZ, DEGREES);
                 telemetry.addData("Rot (deg)", "{Roll, Pitch, Heading} = %.0f, %.0f, %.0f", rotation.firstAngle, rotation.secondAngle, rotation.thirdAngle);
 
-                double yValue = translation.get(1);
-                if (yValue < 0) {
-                    skystoneLocation = SkystoneLocation.FIRST;
-                } else {
-                    skystoneLocation = SkystoneLocation.SECOND;
-                }
-
+                yValue = translation.get(1);
             } else {
                 telemetry.addData("Visible Target", "none");
-                skystoneLocation = SkystoneLocation.THIRD;
             }
             telemetry.update();
         }
-        return skystoneLocation;
+        return yValue;
     }
 }
