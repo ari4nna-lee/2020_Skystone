@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
@@ -92,18 +93,14 @@ public class RedLoadingOp extends LinearOpMode {
     public void runOpMode() {
         initDriveHardwareMap();
         initiateVuforia();
-        // Activate Vuforia Skystone tracking
-        targetsSkyStone.activate();
+
         hookLeft.setPosition(0);
-        hookRight.setPosition(1);
+        hookRight.setPosition(0);
+        sideGrabber.setPosition(0);
+        yaw.setPosition(0);
         //TODO initiate arm/pitch servo
 
         waitForStart();
-
-        sideGrabber.setPosition(0);
-        yaw.setPosition(0);
-
-
 
         // create robot Navigator
         navigator = new Navigator(this);
@@ -113,131 +110,71 @@ public class RedLoadingOp extends LinearOpMode {
         positionThread.start();
 
         if (opModeIsActive()) {
+            // Activate Vuforia Skystone tracking
+            targetsSkyStone.activate();
             //1. Move to about 10 inches in front of stone wall
-            navigator.goToPosition(-21, 0, MOTOR_POWER, 0, 1);
+            double distance = distanceLeft.getDistance(DistanceUnit.INCH) - 7;
+            double targetX = -20.0;
+            if ((distance > 15.0) && (distance < Math.abs(targetX))) {
+                targetX = distance * -1;
+            }
+            navigator.goToPosition(targetX, 0, MOTOR_POWER, 0, 1);
             navigator.stop();
 
             //2. Call getSkystoneLocation
             ElapsedTime elapsedTime = new ElapsedTime();
-            targetsSkyStone.activate();
-            telemetry.addData("before ", "getSkystoneLocation");
-            telemetry.update();
             double yValue = getSkystoneYValue(allTrackables);
-            double offset = Math.abs(yValue) / mmPerInch;
+            // targetsSkyStone.deactivate();
+
+            double offset;
+            double yDistanceToNextStone;
+            double nextYTarget = 0.0;
             SkystoneLocation skystoneLocation = getSkystoneLocation(yValue);
+            telemetry.addData("Initial distance", distance);
+            telemetry.addData("Initial Target X", targetX);
             telemetry.addData("Y value", yValue);
+            telemetry.addData("Y POS", globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH);
             telemetry.addData("Time needed in ms", elapsedTime.milliseconds());
 
-            double distance;
-            double nextYTarget;
+            String where = "";
 
-            if (skystoneLocation == SkystoneLocation.THIRD) {
-                offset = 0;
-            }
+            double raw = 0.0;
 
-            // RED LOADING side
             if (skystoneLocation == SkystoneLocation.FIRST) {
-                telemetry.addData("Skystone located", "FIRST");
-                // move slowly
-                navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH,
-                        globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH -(offset + 1.0), 0.5,0, 1);
-
-                distance = measureDistanceToTarget();
-                nextYTarget = globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH + 24;
-                navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH - distance, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, 0.5, 0, 1);
-
-                grabAndMoveStone();
-
-                //move forward to next Skystone
-                navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, nextYTarget, MOTOR_POWER, 0, 1);
-                navigator.stop();
-
-                distance = measureDistanceToTarget();
-                navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH - distance, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, 0.5, 0, 1);
-                navigator.stop();
-
-                grabAndMoveStone();
-
-                // park under the bridge
-                navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH -2, -35, MOTOR_POWER, 0, 1);
-
-                navigator.stop();
+                where = "FIRST";
+                offset = (Math.abs(yValue) / mmPerInch + 3.0) * -1;
+                raw = offset;
+                offset = Range.clip(offset, -7.0, -5.0);
+                yDistanceToNextStone = 24.0;
+                nextYTarget = getFirstStoneRoutine(offset, yDistanceToNextStone);
 
             } else if (skystoneLocation == SkystoneLocation.SECOND) {
                 // do 2nd
-                telemetry.addData("Skystone located", "SECOND");
-                // move slowly
-                navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH,
-                        globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH +(offset - 2), 0.5,0, 1);
-
-                distance = measureDistanceToTarget();
-                nextYTarget = globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH + 24;
-                navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH - distance, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, 0.5, 0, 1);
-
-                grabAndMoveStone();
-
-                //move forward to next Skystone
-                navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, nextYTarget, MOTOR_POWER, 0, 1);
-                navigator.stop();
-
-                distance = measureDistanceToTarget();
-                navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH - distance, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, 0.5, 0, 1);
-                navigator.stop();
-
-                grabAndMoveStone();
-
-                // park under the bridge
-                navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH -2, -35, MOTOR_POWER, 0, 1);
-
-                navigator.stop();
-
+                where = "SECOND";
+                offset = Math.abs(yValue) /mmPerInch - 1.0;
+                raw = offset;
+                offset = Range.clip(offset, 2.0, 4.0);
+                yDistanceToNextStone = 24.0;
+                nextYTarget = getFirstStoneRoutine(offset, yDistanceToNextStone);
             } else {
                 // do 3rd routine
-                telemetry.addData("Skystone located", "THIRD");
-                // move slowly
-                navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH,
-                        globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH +(offset + 10), 0.5,0, 1);
-
-                distance = measureDistanceToTarget();
-                nextYTarget = globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH + 8;
-                navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH - distance, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, 0.5, 0, 1);
-
-                grabAndMoveStone();
-
-                //move forward to next Skystone
-                navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, nextYTarget, MOTOR_POWER, 0, 1);
-                navigator.stop();
-
-                distance = distanceLeft.getDistance(DistanceUnit.INCH) + 1;
-                navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH - distance, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, 0.5, 0, 1);
-                navigator.stop();
-
-                grabAndMoveStone();
-
-                // park under the bridge
-                navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH -2, -35, MOTOR_POWER, 0, 1);
-
-                navigator.stop();
+                where = "THIRD";
+                offset = 10.0;
+                yDistanceToNextStone = 8.0;
+                nextYTarget = getFirstStoneRoutine(offset, yDistanceToNextStone);
             }
-            telemetry.addData("side servo pos", sideGrabber.getPosition());
-            telemetry.update();
 
+            telemetry.addData("Skystone", where);
+            telemetry.addData("RAW OFFSET", raw);
+            telemetry.addData("CLIP OFFSET", offset);
+            getNextStoneRoutine(nextYTarget);
+            telemetry.update();
 
             while (opModeIsActive()) {
                 sleep(50);
-                //Display Global (x, y, theta) coordinates
-
-//                 telemetry.addData("X Position", globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH);
-//                 telemetry.addData("Y Position", globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH);
-//                 telemetry.addData("Orientation (Degrees)", globalPositionUpdate.returnOrientation());
-//
-//                 telemetry.addData("Thread Active", positionThread.isAlive());
-//                 telemetry.update();
             }
-
         }
         navigator.stop();
-
         targetsSkyStone.deactivate();
 
         if (globalPositionUpdate != null) {
@@ -253,6 +190,7 @@ public class RedLoadingOp extends LinearOpMode {
         sideGrabber = hardwareMap.servo.get("sideGrabber");
         hookLeft = hardwareMap.servo.get("hookLeft");
         hookRight = hardwareMap.servo.get("hookRight");
+        hookLeft.setDirection(Servo.Direction.REVERSE);
         distanceFront = hardwareMap.get(DistanceSensor.class, "distanceFront");
         distanceLeft = hardwareMap.get(DistanceSensor.class, "distanceLeft");
         yaw = hardwareMap.servo.get("yaw");
@@ -288,9 +226,9 @@ public class RedLoadingOp extends LinearOpMode {
             phoneXRotate = 90;
         }
 
-        final float CAMERA_FORWARD_DISPLACEMENT = 4.0f * mmPerInch;   // eg: Camera is 4 Inches in front of robot center
-        final float CAMERA_VERTICAL_DISPLACEMENT = 8.0f * mmPerInch;   // eg: Camera is 8 Inches above ground
-        final float CAMERA_LEFT_DISPLACEMENT = 0;     // eg: Camera is ON the robot's center line
+        final float CAMERA_FORWARD_DISPLACEMENT = 6.0f * mmPerInch;   // eg: Camera is 4 Inches in front of robot center
+        final float CAMERA_VERTICAL_DISPLACEMENT = 6.0f * mmPerInch;   // eg: Camera is 8 Inches above ground
+        final float CAMERA_LEFT_DISPLACEMENT = 3.0f;     // eg: Camera is ON the robot's center line
 
         OpenGLMatrix robotFromCamera = OpenGLMatrix
                 .translation(CAMERA_FORWARD_DISPLACEMENT, CAMERA_LEFT_DISPLACEMENT, CAMERA_VERTICAL_DISPLACEMENT)
@@ -316,10 +254,40 @@ public class RedLoadingOp extends LinearOpMode {
         sleep(500);
     }
 
+    private double getFirstStoneRoutine(double offset, double yDistanceToNextStone) {
+        // move slowly
+        navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH,
+                globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH + offset, 0.5,0, 1);
+
+        double distance = measureDistanceToTarget();
+        double nextYTarget = globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH + yDistanceToNextStone;
+        navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH - distance, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, 0.5, 0, 1);
+
+        grabAndMoveStone();
+        return nextYTarget;
+    }
+
+    private void getNextStoneRoutine(double nextYTarget) {
+        //move forward to next Skystone
+        navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, nextYTarget, MOTOR_POWER, 0, 1);
+        navigator.stop();
+
+        double distance = measureDistanceToTarget();
+        navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH - distance, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, 0.5, 0, 1);
+        navigator.stop();
+
+        grabAndMoveStone();
+
+        // park under the bridge
+        navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH -2, -35, MOTOR_POWER, 0, 1);
+
+        navigator.stop();
+    }
+
     private double measureDistanceToTarget() {
         double distance = distanceLeft.getDistance(DistanceUnit.INCH) + 1;
-        if (distance > 14) {
-            distance = 11.0;
+        if (distance > 15) {
+            distance = 12.0;
         }
         return distance;
     }
@@ -337,9 +305,6 @@ public class RedLoadingOp extends LinearOpMode {
 
     private double getSkystoneYValue(List<VuforiaTrackable> allTrackables) {
         double yValue = 1000.0;
-
-        SkystoneLocation skystoneLocation = SkystoneLocation.THIRD;
-
         ElapsedTime elapsedTime = new ElapsedTime();
         boolean targetVisible = false;
 
