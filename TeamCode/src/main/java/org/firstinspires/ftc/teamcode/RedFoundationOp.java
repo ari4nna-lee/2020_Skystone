@@ -18,7 +18,7 @@ public class RedFoundationOp extends LinearOpMode {
     final double ROTATION_MOTOR_POWER = 0.8;
 
     private final double HOOK_POS_UP = 1.0;
-    private final double HOOK_POS_DOWN = 0.2;
+    private final double HOOK_POS_DOWN = 0.25;
     private final double HOOK_LOCK = 0;
 
     OdometryGlobalCoordinatePosition globalPositionUpdate;
@@ -31,6 +31,7 @@ public class RedFoundationOp extends LinearOpMode {
     private Servo hookLeft;
     private Servo hookRight;
     private Servo yaw;
+    private Servo sideGrabber;
 
     @Override
     public void runOpMode() {
@@ -41,6 +42,7 @@ public class RedFoundationOp extends LinearOpMode {
         leftBack = hardwareMap.dcMotor.get("leftBack");
         hookLeft = hardwareMap.servo.get("hookLeft");
         hookRight = hardwareMap.servo.get("hookRight");
+        sideGrabber = hardwareMap.servo.get("sideGrabber");
         yaw = hardwareMap.servo.get("yaw");
         distanceFront = hardwareMap.get(DistanceSensor.class, "distanceFront");
         leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -50,6 +52,7 @@ public class RedFoundationOp extends LinearOpMode {
         hookLeft.setPosition(HOOK_LOCK);
         hookRight.setPosition(HOOK_LOCK);
         yaw.setPosition(0);
+        sideGrabber.setPosition(0);
 
         waitForStart();
 
