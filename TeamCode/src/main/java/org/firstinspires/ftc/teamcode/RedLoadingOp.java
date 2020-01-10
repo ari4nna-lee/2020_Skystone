@@ -128,6 +128,9 @@ public class RedLoadingOp extends LinearOpMode {
             telemetry.addData("Y value", yValue);
             telemetry.addData("Time needed in ms", elapsedTime.milliseconds());
 
+            double distance;
+            double nextYTarget;
+
             if (skystoneLocation == SkystoneLocation.THIRD) {
                 offset = 0;
             }
@@ -139,8 +142,8 @@ public class RedLoadingOp extends LinearOpMode {
                 navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH,
                         globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH -(offset + 1.0), 0.5,0, 1);
 
-                double distance = distanceLeft.getDistance(DistanceUnit.INCH) + 1;
-                double nextYTarget = globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH + 24;
+                distance = measureDistanceToTarget();
+                nextYTarget = globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH + 24;
                 navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH - distance, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, 0.5, 0, 1);
 
                 grabAndMoveStone();
@@ -149,7 +152,7 @@ public class RedLoadingOp extends LinearOpMode {
                 navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, nextYTarget, MOTOR_POWER, 0, 1);
                 navigator.stop();
 
-                distance = distanceLeft.getDistance(DistanceUnit.INCH) + 1;
+                distance = measureDistanceToTarget();
                 navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH - distance, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, 0.5, 0, 1);
                 navigator.stop();
 
@@ -167,8 +170,8 @@ public class RedLoadingOp extends LinearOpMode {
                 navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH,
                         globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH +(offset - 2), 0.5,0, 1);
 
-                double distance = distanceLeft.getDistance(DistanceUnit.INCH) + 1;
-                double nextYTarget = globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH + 24;
+                distance = measureDistanceToTarget();
+                nextYTarget = globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH + 24;
                 navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH - distance, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, 0.5, 0, 1);
 
                 grabAndMoveStone();
@@ -177,7 +180,7 @@ public class RedLoadingOp extends LinearOpMode {
                 navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, nextYTarget, MOTOR_POWER, 0, 1);
                 navigator.stop();
 
-                distance = distanceLeft.getDistance(DistanceUnit.INCH) + 1;
+                distance = measureDistanceToTarget();
                 navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH - distance, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, 0.5, 0, 1);
                 navigator.stop();
 
@@ -193,10 +196,10 @@ public class RedLoadingOp extends LinearOpMode {
                 telemetry.addData("Skystone located", "THIRD");
                 // move slowly
                 navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH,
-                        globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH +(offset - 10), 0.5,0, 1);
+                        globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH +(offset + 10), 0.5,0, 1);
 
-                double distance = distanceLeft.getDistance(DistanceUnit.INCH) + 1;
-                double nextYTarget = globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH + 8;
+                distance = measureDistanceToTarget();
+                nextYTarget = globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH + 8;
                 navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH - distance, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, 0.5, 0, 1);
 
                 grabAndMoveStone();
@@ -221,6 +224,7 @@ public class RedLoadingOp extends LinearOpMode {
 
 
             while (opModeIsActive()) {
+                sleep(50);
                 //Display Global (x, y, theta) coordinates
 
 //                 telemetry.addData("X Position", globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH);
@@ -306,11 +310,20 @@ public class RedLoadingOp extends LinearOpMode {
         sideGrabber.setPosition(1);
         sleep(500);
         navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH - 1, 0.5, 0, 0.5);
-        navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH + 8, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, MOTOR_POWER, 0, 1);
-        navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, -46, MOTOR_POWER, 0, 1);
+        navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH + 9, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, MOTOR_POWER, 0, 1);
+        navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, -42, MOTOR_POWER, 0, 1);
         sideGrabber.setPosition(0);
         sleep(500);
     }
+
+    private double measureDistanceToTarget() {
+        double distance = distanceLeft.getDistance(DistanceUnit.INCH) + 1;
+        if (distance > 14) {
+            distance = 11.0;
+        }
+        return distance;
+    }
+
     private SkystoneLocation getSkystoneLocation(double offset) {
         if (offset == 1000.0) {
             return SkystoneLocation.THIRD;
