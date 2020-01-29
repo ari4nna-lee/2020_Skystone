@@ -1,12 +1,13 @@
 package org.firstinspires.ftc.teamcode.odometry;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.Range;
 
-;
+;import org.firstinspires.ftc.teamcode.drivetrain.PIDController;
 
 /**
  * Created by Sarthak on 10/4/2019.
@@ -40,20 +41,22 @@ public class MyOdometryOpmode extends LinearOpMode {
         Thread positionThread = new Thread(globalPositionUpdate);
         positionThread.start();
 
-        // globalPositionUpdate.reverseRightEncoder();
-        globalPositionUpdate.reverseNormalEncoder() ;
+        globalPositionUpdate.reverseLeftEncoder();
+        globalPositionUpdate.reverseRightEncoder();
 
-        //goToPosition(0*COUNTS_PER_INCH, 24*COUNTS_PER_INCH, 0.5, 0, 1*COUNTS_PER_INCH);
-        //goToPosition(24*COUNTS_PER_INCH, 24*COUNTS_PER_INCH, 0.5, 0, 1*COUNTS_PER_INCH);
-        //goToPosition( 0*COUNTS_PER_INCH, 0*COUNTS_PER_INCH, 0.5, 0, 1*COUNTS_PER_INCH);
-        goToRotation(90, 0.7, 5);
+        //goToPosition(0*COUNTS_PER_INCH, 24*COUNTS_PER_INCH, 0.25, 0, 1*COUNTS_PER_INCH);
+        //goToPosition(24*COUNTS_PER_INCH, 24*COUNTS_PER_INCH, 0.45, 0, 1*COUNTS_PER_INCH);
+        // goToPosition( 0*COUNTS_PER_INCH, 0*COUNTS_PER_INCH, 0.7, 0, 1*COUNTS_PER_INCH);
+        goToRotation(90, 0.7, 2);
         drive(0, 0, 0);
         sleep(2000);
+        /*
         goToPosition(globalPositionUpdate.returnXCoordinate() + 12 * COUNTS_PER_INCH,
                 globalPositionUpdate.returnYCoordinate(),
                 0.5,
                 globalPositionUpdate.returnOrientation(),
                 2*COUNTS_PER_INCH);
+                */
 
         left_front.setPower(0);
         right_front.setPower(0);
@@ -79,31 +82,43 @@ public class MyOdometryOpmode extends LinearOpMode {
 
     }
 
-    private void goToPosition(double targetXPosition, double targetYPosition, double robotPower, double desiredRobotOrientation, double allowableDistanceError) {
+    private void goToPosition(double targetXPosition, double targetYPosition, double basePower, double desiredRobotOrientation, double allowableDistanceError) {
         double distanceToXTarget = targetXPosition - globalPositionUpdate.returnXCoordinate();
         double distanceToYTarget = targetYPosition - globalPositionUpdate.returnYCoordinate();
 
         double distance  = Math.hypot(distanceToXTarget, distanceToYTarget);
+        double curDistance = distance;
 
-        while (opModeIsActive() && !isStopRequested() && (distance > allowableDistanceError)) {
+        PIDController pidController = new PIDController(0.00007, 0, 0);
+        pidController.setSetpoint(distance);
+        pidController.setInputRange(0, distance);
+        pidController.setOutputRange(0, 0.4);
+        pidController.setTolerance(allowableDistanceError);
+        pidController.enable();
+
+        while (opModeIsActive() && !isStopRequested() && ( curDistance > allowableDistanceError)) {
             distanceToXTarget = targetXPosition - globalPositionUpdate.returnXCoordinate();
             distanceToYTarget = targetYPosition - globalPositionUpdate.returnYCoordinate();
 
-            distance  = Math.hypot(distanceToXTarget, distanceToYTarget);
+            curDistance  = Math.hypot(distanceToXTarget, distanceToYTarget);
 
             double robotMovementAngle = Math.toDegrees(Math.atan2(distanceToXTarget, distanceToYTarget)) - globalPositionUpdate.returnOrientation();
 
-            double robotMovementXComponent = calculateX(robotMovementAngle, robotPower);
-            double robotMovementYComponent = calculateY(robotMovementAngle, robotPower);
+            double speedCorrection = pidController.performPID(distance - curDistance);
+
+            double robotMovementXComponent = calculateX(robotMovementAngle, basePower + speedCorrection);
+            double robotMovementYComponent = calculateY(robotMovementAngle, basePower + speedCorrection);
+
             double pivotCorrection = desiredRobotOrientation - globalPositionUpdate.returnOrientation();
 
-            //drive(robotMovementYComponent, robotMovementXComponent, pivotCorrection);
+            drive(robotMovementYComponent, robotMovementXComponent, pivotCorrection);
             //sleep(50);
             telemetry.addData("X to target", distanceToXTarget);
             telemetry.addData("Y to target", distanceToYTarget);
             telemetry.addData("Distance to target", distance);
             telemetry.addData("Robot Movement Angle", robotMovementAngle);
-            //telemetry.addData("Allowable Error", allowableDistanceError);
+            telemetry.addData("Speed correction", speedCorrection);
+            telemetry.addData("Allowable Error", allowableDistanceError);
             telemetry.addData("Control Y", robotMovementYComponent);
             telemetry.addData("Control X", robotMovementXComponent);
             telemetry.addData("Control Pivot", pivotCorrection);
@@ -119,23 +134,36 @@ public class MyOdometryOpmode extends LinearOpMode {
             telemetry.update();
         }
     }
-    private void goToRotation(double targetAngle, double robotPower, double allowableAngleError) {
+    private void goToRotation(double targetAngle, double targetPower, double allowableAngleError) {
         double currentAngle = globalPositionUpdate.returnOrientation();
 
-        double angleError = Math.abs(targetAngle) - Math.abs(currentAngle);
+        double absError = Math.abs(targetAngle) - Math.abs(currentAngle);
 
-        while (opModeIsActive() && !(angleError <= allowableAngleError || isStopRequested())) {
+        double p = Math.abs(targetPower / targetAngle);
+        double i = p / 10000.0;
+        double d = 0;
+        PIDController pidController = new PIDController(p, i, d);
+        pidController.setSetpoint(targetAngle);
+        pidController.setInputRange(0, targetAngle);
+        pidController.setOutputRange(0, targetPower);
+        pidController.setTolerance(allowableAngleError);
+        pidController.enable();
+
+        while (opModeIsActive() && !(absError <= allowableAngleError || isStopRequested())) {
             currentAngle = globalPositionUpdate.returnOrientation();
-            angleError = Math.abs(targetAngle) - Math.abs(currentAngle);
+            absError = Math.abs(targetAngle) - Math.abs(currentAngle);
 
+            double power = pidController.performPID(currentAngle);
+            power = Range.clip(power, 0.3, targetPower);
             if (targetAngle < 0){
-                rotate(robotPower * -1);
+                rotate(power * -1);
             } else {
-                rotate(robotPower);
+                rotate(power);
             }
 
-            telemetry.addData("Distance to Desired Angle", angleError);
+            telemetry.addData("Distance to Desired Angle", absError);
             telemetry.addData("Allowable Error", allowableAngleError);
+            telemetry.addData("PID calculated power", power);
 
             telemetry.addData("Orientation", globalPositionUpdate.returnOrientation());
             telemetry.update();
@@ -161,10 +189,10 @@ public class MyOdometryOpmode extends LinearOpMode {
     private void drive(double y, double x, double rot) {
         double r = Math.hypot(x, y);
         double robotAngle = Math.atan2(y, x) - Math.PI / 4;
-        double rightX = Range.clip(rot / 10.0, -0.5, 0.5);
+        double rightX = Range.clip(rot / 40.0, -0.4, 0.4);
 
-        //telemetry.addData("RAW Rot", rot);
-        //telemetry.addData("Control rightX", rightX);
+        telemetry.addData("RAW Rot", rot);
+        telemetry.addData("Control rightX", rightX);
 
         double lFront = r * Math.cos(robotAngle) + rightX;
         double rFront = r * Math.sin(robotAngle) - rightX;
@@ -201,9 +229,8 @@ public class MyOdometryOpmode extends LinearOpMode {
         verticalRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         horizontal.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
-        left_front.setDirection(DcMotorSimple.Direction.REVERSE);
-        right_front.setDirection(DcMotorSimple.Direction.FORWARD);
-        left_back.setDirection(DcMotorSimple.Direction.REVERSE);
+        right_front.setDirection(DcMotorSimple.Direction.REVERSE);
+        right_back.setDirection(DcMotorSimple.Direction.REVERSE);
 
         verticalLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         verticalRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);

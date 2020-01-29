@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.drivetrain;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -24,12 +25,15 @@ public class MyNavigationOpMode extends LinearOpMode {
         Thread positionThread = new Thread(globalPositionUpdate);
         positionThread.start();
 
-        navigator.goToPosition(0, 24, 0.7, 0, 1);
-        navigator.goToPosition(24, 24, 0.7, 0, 1);
-        navigator.goToPosition(0, 0, 0.7, 0, 1);
-        navigator.pivotToOrientation(-135, 0.7, 5);
-
+        navigator.goToPosition(0, 24, 0.6, 0, 1);
+        //navigator.goToPosition(24, 24, 0.6, 0, 1);
+        //navigator.goToPosition(0, 0, 0.6, 0, 1);
+        //navigator.pivotToOrientation(90, 0.4, 3);
         navigator.stop();
+        //sleep(2000);
+        //navigator.goToPosition((globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH + 12.0), globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, 0.7, globalPositionUpdate.returnOrientation(), 1);
+
+        //navigator.stop();
 
         while(opModeIsActive()){
             //Display Global (x, y, theta) coordinates

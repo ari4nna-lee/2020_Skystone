@@ -35,7 +35,8 @@ public class Navigator {
         //Initialize hardware map values. PLEASE UPDATE THESE VALUES TO MATCH YOUR CONFIGURATION
         initDriveHardwareMap(rfName, rbName, lfName, lbName, verticalLeftEncoderName, verticalRightEncoderName, horizontalEncoderName);
         this.globalPositionUpdate = new OdometryGlobalCoordinatePosition(verticalLeft, verticalRight, horizontal, COUNTS_PER_INCH, 75);
-        this.globalPositionUpdate.reverseNormalEncoder();
+        this.globalPositionUpdate.reverseLeftEncoder();
+        this.globalPositionUpdate.reverseRightEncoder();
     }
 
     public OdometryGlobalCoordinatePosition getGlobalPositionRunnable() {
@@ -154,7 +155,7 @@ public class Navigator {
     private void drive(double y, double x, double rot) {
         double r = Math.hypot(x, y);
         double robotAngle = Math.atan2(y, x) - Math.PI / 4;
-        double rightX = Range.clip(rot / 50.0, -0.7, 0.7);
+        double rightX = Range.clip(rot / 50.0, -0.4, 0.4);
 
         telemetry.addData("RAW Rot", rot);
         telemetry.addData("Control rightX", rightX);
@@ -193,9 +194,8 @@ public class Navigator {
         verticalRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         horizontal.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
-        left_front.setDirection(DcMotorSimple.Direction.REVERSE);
-        right_front.setDirection(DcMotorSimple.Direction.FORWARD);
-        left_back.setDirection(DcMotorSimple.Direction.REVERSE);
+        right_front.setDirection(DcMotorSimple.Direction.REVERSE);
+        right_back.setDirection(DcMotorSimple.Direction.REVERSE);
 
         verticalLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         verticalRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
