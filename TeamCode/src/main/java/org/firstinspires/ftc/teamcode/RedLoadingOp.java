@@ -33,7 +33,12 @@ import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocaliz
 @Autonomous(name = "RED LoadingOp", group = "")
 public class RedLoadingOp extends LinearOpMode {
     final double COUNTS_PER_INCH = 306.382254;
-    final double MOTOR_POWER = 0.7;
+    final double BASE_POWER_VERTICAL = 0.3;
+    final double BASE_POWER_HORIZONTAL = 0.45;
+
+    private final double ARM_GRABBER_MAX_POS = 0.55;
+    private final double SIDE_GRABBER_UP_POS = 0;
+    private final double CAPSTONE_MIN_POS = 0.33;
 
     private OdometryGlobalCoordinatePosition globalPositionUpdate;
 
@@ -84,10 +89,12 @@ public class RedLoadingOp extends LinearOpMode {
     private DcMotor leftBack;
     private DistanceSensor distanceFront;
     private Servo sideGrabber;
+    private Servo armGrabber;
+    private Servo capstone;
     private Servo hookLeft;
     private Servo hookRight;
     private DistanceSensor distanceLeft;
-    private Servo yaw;
+    private DistanceSensor distanceBack;
 
     @Override
     public void runOpMode() {
@@ -97,7 +104,11 @@ public class RedLoadingOp extends LinearOpMode {
         hookLeft.setPosition(0);
         hookRight.setPosition(0);
         sideGrabber.setPosition(0);
-        yaw.setPosition(0);
+
+        armGrabber.setPosition(ARM_GRABBER_MAX_POS);
+        sideGrabber.setPosition(SIDE_GRABBER_UP_POS);
+        capstone.setPosition(CAPSTONE_MIN_POS);
+
         //TODO initiate arm/pitch servo
 
         waitForStart();
@@ -118,7 +129,7 @@ public class RedLoadingOp extends LinearOpMode {
             if ((distance > 15.0) && (distance < Math.abs(targetX))) {
                 targetX = distance * -1;
             }
-            navigator.goToPosition(targetX, 0, MOTOR_POWER, 0, 1);
+            navigator.goToPosition(targetX, 0, BASE_POWER_HORIZONTAL, 0, 1);
             navigator.stop();
 
             //2. Call getSkystoneLocation
@@ -153,13 +164,13 @@ public class RedLoadingOp extends LinearOpMode {
                 where = "SECOND";
                 offset = Math.abs(yValue) /mmPerInch - 1.0;
                 raw = offset;
-                offset = Range.clip(offset, 2.0, 4.0);
+                offset = Range.clip(offset, 1.0, 2.0);
                 yDistanceToNextStone = 24.0;
                 nextYTarget = getFirstStoneRoutine(offset, yDistanceToNextStone);
             } else {
                 // do 3rd routine
                 where = "THIRD";
-                offset = 10.0;
+                offset = 8.0;
                 yDistanceToNextStone = 8.0;
                 nextYTarget = getFirstStoneRoutine(offset, yDistanceToNextStone);
             }
@@ -191,11 +202,14 @@ public class RedLoadingOp extends LinearOpMode {
         hookLeft = hardwareMap.servo.get("hookLeft");
         hookRight = hardwareMap.servo.get("hookRight");
         hookLeft.setDirection(Servo.Direction.REVERSE);
+        armGrabber = hardwareMap.servo.get("armGrabber");
+        sideGrabber = hardwareMap.servo.get("sideGrabber");
+        capstone = hardwareMap.servo.get("capstone");
         distanceFront = hardwareMap.get(DistanceSensor.class, "distanceFront");
         distanceLeft = hardwareMap.get(DistanceSensor.class, "distanceLeft");
-        yaw = hardwareMap.servo.get("yaw");
-        leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
-        leftBack.setDirection(DcMotorSimple.Direction.REVERSE);
+        distanceBack = hardwareMap.get(DistanceSensor.class, "distanceBack");
+        rightFront.setDirection(DcMotorSimple.Direction.REVERSE);
+        rightBack.setDirection(DcMotorSimple.Direction.REVERSE);
 
         telemetry.addData("Status", "Drive Hardware Map Init Complete");
         telemetry.update();
@@ -247,9 +261,9 @@ public class RedLoadingOp extends LinearOpMode {
     private void grabAndMoveStone() {
         sideGrabber.setPosition(1);
         sleep(500);
-        navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH - 1, 0.5, 0, 0.5);
-        navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH + 9, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, MOTOR_POWER, 0, 1);
-        navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, -42, MOTOR_POWER, 0, 1);
+        navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH - 1, BASE_POWER_VERTICAL, 0, 0.5);
+        navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH + 10, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, BASE_POWER_HORIZONTAL, 0, 1);
+        navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, -42, BASE_POWER_VERTICAL, 0, 1);
         sideGrabber.setPosition(0);
         sleep(500);
     }
@@ -257,11 +271,11 @@ public class RedLoadingOp extends LinearOpMode {
     private double getFirstStoneRoutine(double offset, double yDistanceToNextStone) {
         // move slowly
         navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH,
-                globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH + offset, 0.5,0, 1);
+                globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH + offset, BASE_POWER_HORIZONTAL,0, 1);
 
         double distance = measureDistanceToTarget();
         double nextYTarget = globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH + yDistanceToNextStone;
-        navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH - distance, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, 0.5, 0, 1);
+        navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH - distance, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, BASE_POWER_HORIZONTAL, 0, 1);
 
         grabAndMoveStone();
         return nextYTarget;
@@ -269,17 +283,17 @@ public class RedLoadingOp extends LinearOpMode {
 
     private void getNextStoneRoutine(double nextYTarget) {
         //move forward to next Skystone
-        navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, nextYTarget, MOTOR_POWER, 0, 1);
+        navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, nextYTarget, BASE_POWER_VERTICAL, 0, 1);
         navigator.stop();
 
         double distance = measureDistanceToTarget();
-        navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH - distance, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, 0.5, 0, 1);
+        navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH - distance, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, BASE_POWER_HORIZONTAL, 0, 1);
         navigator.stop();
 
         grabAndMoveStone();
 
         // park under the bridge
-        navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH -2, -35, MOTOR_POWER, 0, 1);
+        navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH -2, -35, BASE_POWER_VERTICAL + 0.1, 0, 1);
 
         navigator.stop();
     }
