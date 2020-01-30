@@ -32,7 +32,12 @@ import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocaliz
 @Autonomous(name = "BLUE LoadingOp", group = "")
 public class BlueLoadingOp extends LinearOpMode {
     final double COUNTS_PER_INCH = 306.382254;
-    final double MOTOR_POWER = 0.9;
+    final double BASE_POWER_VERTICAL = 0.3;
+    final double BASE_POWER_HORIZONTAL = 0.45;
+
+    private final double ARM_GRABBER_MAX_POS = 0.55;
+    private final double SIDE_GRABBER_UP_POS = 0;
+    private final double CAPSTONE_MIN_POS = 0.33;
 
     private OdometryGlobalCoordinatePosition globalPositionUpdate;
 
@@ -82,9 +87,11 @@ public class BlueLoadingOp extends LinearOpMode {
     private DcMotor leftFront;
     private DcMotor leftBack;
     private DistanceSensor distanceFront;
+    private DistanceSensor distanceBack;
     private Servo sideGrabber;
+    private Servo armGrabber;
+    private Servo capstone;
     private DistanceSensor distanceLeft;
-    private Servo yaw;
     private Servo hookLeft;
     private Servo hookRight;
 
@@ -93,9 +100,12 @@ public class BlueLoadingOp extends LinearOpMode {
         initDriveHardwareMap();
 
         sideGrabber.setPosition(0);
-        yaw.setPosition(0);
         hookLeft.setPosition(0);
         hookRight.setPosition(0);
+
+        armGrabber.setPosition(ARM_GRABBER_MAX_POS);
+        sideGrabber.setPosition(SIDE_GRABBER_UP_POS);
+        capstone.setPosition(CAPSTONE_MIN_POS);
 
         initiateVuforia();
 
@@ -112,12 +122,13 @@ public class BlueLoadingOp extends LinearOpMode {
             // Activate Vuforia Skystone tracking
             targetsSkyStone.activate();
             //1. Move to about 10 inches in front of stone wall
-            double distance = distanceLeft.getDistance(DistanceUnit.INCH) - 7;
-            double targetX = -20.0;
+            double distance = distanceLeft.getDistance(DistanceUnit.INCH) - 9;
+            double targetX = -21.0;
             if ((distance > 15.0) && (distance < Math.abs(targetX))) {
                 targetX = distance * -1;
             }
-            navigator.goToPosition(targetX, 0, MOTOR_POWER, 0, 1);
+
+            navigator.goToPosition(targetX, 0, BASE_POWER_HORIZONTAL, 0, 0.5);
             navigator.stop();
 
             //2. Call getSkystoneLocation
@@ -137,15 +148,15 @@ public class BlueLoadingOp extends LinearOpMode {
             double raw = 0.0;
 
             if (skystoneLocation == SkystoneLocation.FIRST) {
-                offset = Math.abs(yValue) / mmPerInch - 3.0;
+                offset = Math.abs(yValue) / mmPerInch - 4.0;
                 where = "FIRST";
                 raw = offset;
-                yDistanceToNextStone = 24.0;
+                yDistanceToNextStone = 23.0;
                 telemetry.addData("Skystone Located", "FIRST");
                 nextYTarget = getFirstStoneRoutine(offset, yDistanceToNextStone);
             } else if (skystoneLocation == SkystoneLocation.SECOND) {
                 offset = Math.abs(yValue) / mmPerInch + 3.0;
-                yDistanceToNextStone = 24.0;
+                yDistanceToNextStone = 23.0;
                 telemetry.addData("Skystone Located", "SECOND");
                 where = "SECOND";
                 raw = offset;
@@ -162,6 +173,7 @@ public class BlueLoadingOp extends LinearOpMode {
             telemetry.addData("Skystone", where);
             telemetry.addData("RAW OFFSET", raw);
             telemetry.addData("CLIP OFFSET", offset);
+            telemetry.addData("Distance to wall", distanceBack.getDistance(DistanceUnit.INCH));
             telemetry.update();
             getNextStoneRoutine(nextYTarget);
 
@@ -181,9 +193,9 @@ public class BlueLoadingOp extends LinearOpMode {
     private void grabAndMoveStone() {
         sideGrabber.setPosition(1);
         sleep(500);
-        navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH + 1, 0.5, 0, 0.5);
-        navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH + 8, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, MOTOR_POWER, 0, 1);
-        navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, 36, MOTOR_POWER, 0, 1);
+        navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH + 1, BASE_POWER_VERTICAL, 0, 0.5);
+        navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH + 8, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, BASE_POWER_HORIZONTAL, 0, 1);
+        navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, 36, BASE_POWER_VERTICAL, 0, 1);
         sideGrabber.setPosition(0);
         sleep(500);
     }
@@ -199,7 +211,7 @@ public class BlueLoadingOp extends LinearOpMode {
     }
 
     private void getNextStoneRoutine(double targetY) {
-        navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, targetY, MOTOR_POWER, 0, 1.5);
+        navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, targetY, BASE_POWER_VERTICAL, 0, 1.5);
         navigator.stop();
 
         double distance = measureDistanceToTarget();
@@ -208,7 +220,7 @@ public class BlueLoadingOp extends LinearOpMode {
 
         grabAndMoveStone();
 
-        navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH - 3, 32, MOTOR_POWER, 0, 1);
+        navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH - 2, 32, BASE_POWER_VERTICAL + 0.1, 0, 1);
     }
 
     private void initDriveHardwareMap() {
@@ -216,15 +228,17 @@ public class BlueLoadingOp extends LinearOpMode {
         rightBack = hardwareMap.dcMotor.get("rightBack");
         leftFront = hardwareMap.dcMotor.get("leftFront");
         leftBack = hardwareMap.dcMotor.get("leftBack");
+        armGrabber = hardwareMap.servo.get("armGrabber");
         sideGrabber = hardwareMap.servo.get("sideGrabber");
+        capstone = hardwareMap.servo.get("capstone");
         distanceFront = hardwareMap.get(DistanceSensor.class, "distanceFront");
         distanceLeft = hardwareMap.get(DistanceSensor.class, "distanceLeft");
-        yaw = hardwareMap.servo.get("yaw");
+        distanceBack = hardwareMap.get(DistanceSensor.class, "distanceBack");
         hookLeft = hardwareMap.servo.get("hookLeft");
         hookRight = hardwareMap.servo.get("hookRight");
         hookLeft.setDirection(Servo.Direction.REVERSE);
-        leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
-        leftBack.setDirection(DcMotorSimple.Direction.REVERSE);
+        rightFront.setDirection(DcMotorSimple.Direction.REVERSE);
+        rightBack.setDirection(DcMotorSimple.Direction.REVERSE);
 
         telemetry.addData("Status", "Drive Hardware Map Init Complete");
         telemetry.update();
