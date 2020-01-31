@@ -14,12 +14,17 @@ import org.firstinspires.ftc.teamcode.odometry.OdometryGlobalCoordinatePosition;
 @Autonomous(name = "Blue FoundationOp", group = "")
 public class BlueFoundationOp extends LinearOpMode {
     final double COUNTS_PER_INCH = 306.382254;
-    final double MOTOR_POWER = 0.7;
+    final double BASE_POWER_VERTICAL = 0.3;
+    final double BASE_POWER_HORIZONTAL = 0.55;
     final double ROTATION_MOTOR_POWER = 0.8;
 
     private final double HOOK_POS_UP = 1.0;
     private final double HOOK_POS_DOWN = 0.25;
     private final double HOOK_LOCK = 0;
+
+    private final double ARM_GRABBER_MAX_POS = 0.55;
+    private final double SIDE_GRABBER_UP_POS = 0;
+    private final double CAPSTONE_MIN_POS = 0.33;
 
     OdometryGlobalCoordinatePosition globalPositionUpdate;
 
@@ -28,10 +33,12 @@ public class BlueFoundationOp extends LinearOpMode {
     private DcMotor leftFront;
     private DcMotor leftBack;
     private DistanceSensor distanceFront;
+    private DistanceSensor distanceBack;
     private Servo hookLeft;
     private Servo hookRight;
-    private Servo yaw;
     private Servo sideGrabber;
+    private Servo armGrabber;
+    private Servo capstone;
 
     @Override
     public void runOpMode() {
@@ -42,17 +49,22 @@ public class BlueFoundationOp extends LinearOpMode {
         leftBack = hardwareMap.dcMotor.get("leftBack");
         hookLeft = hardwareMap.servo.get("hookLeft");
         hookRight = hardwareMap.servo.get("hookRight");
-        yaw = hardwareMap.servo.get("yaw");
+        armGrabber = hardwareMap.servo.get("armGrabber");
         sideGrabber = hardwareMap.servo.get("sideGrabber");
+        capstone = hardwareMap.servo.get("capstone");
         distanceFront = hardwareMap.get(DistanceSensor.class, "distanceFront");
-        leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
-        leftBack.setDirection(DcMotorSimple.Direction.REVERSE);
+        distanceBack = hardwareMap.get(DistanceSensor.class, "distanceBack");
+        rightFront.setDirection(DcMotorSimple.Direction.REVERSE);
+        rightBack.setDirection(DcMotorSimple.Direction.REVERSE);
         hookLeft.setDirection(Servo.Direction.REVERSE);
 
         hookLeft.setPosition(HOOK_LOCK);
         hookRight.setPosition(HOOK_LOCK);
-        yaw.setPosition(0);
         sideGrabber.setPosition(0);
+
+        armGrabber.setPosition(ARM_GRABBER_MAX_POS);
+        sideGrabber.setPosition(SIDE_GRABBER_UP_POS);
+        capstone.setPosition(CAPSTONE_MIN_POS);
 
         waitForStart();
 
@@ -67,26 +79,29 @@ public class BlueFoundationOp extends LinearOpMode {
             hookLeft.setPosition(HOOK_POS_UP);
             hookRight.setPosition(HOOK_POS_UP);
 
-            navigator.goToPosition(-17, 0, 0.6, 0, 1);
-            navigator.goToPosition(-17, 22, 0.5, 0, 1);
+            navigator.goToPosition(-17, 0, BASE_POWER_HORIZONTAL, 0, 1);
+            navigator.goToPosition(-17, 22, BASE_POWER_VERTICAL, 0, 1);
             navigator.stop();
-            sleep(100);
-            double distance = (distanceFront.getDistance(DistanceUnit.INCH) - 4);
+            sleep(500);
+            double m = distanceFront.getDistance(DistanceUnit.INCH);
+            if (m > 10) {
+                m = 10;
+            }
+            double distance = (m - 4);
 
-            navigator.goToPosition(-17, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH + distance, 0.3, 0, 1);
+            navigator.goToPosition(-17, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH + distance, BASE_POWER_VERTICAL, 0, 1);
             hookLeft.setPosition(HOOK_POS_DOWN);
             hookRight.setPosition(HOOK_POS_DOWN);
             sleep(500);
 
             navigator.tankDrive(-1.0, -0.4, 1000);
-            navigator.pivotToOrientation(-93, ROTATION_MOTOR_POWER, 5);
+            navigator.pivotToOrientation(-90, ROTATION_MOTOR_POWER, 5);
 
             hookLeft.setPosition(HOOK_POS_UP);
             hookRight.setPosition(HOOK_POS_UP);
 
-            navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH - 2, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, MOTOR_POWER, -90, 1);
-            navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, 15, MOTOR_POWER, -90, 1);
-            navigator.goToPosition(40, 15, MOTOR_POWER, -90, 2);
+            navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH - 7, BASE_POWER_HORIZONTAL, -90, 0.5);
+            navigator.goToPosition(28, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, BASE_POWER_HORIZONTAL, -90, 1);
 
             navigator.stop();
 
