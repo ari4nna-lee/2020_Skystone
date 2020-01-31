@@ -139,8 +139,10 @@ public class SkyTeleOp extends LinearOpMode {
                 if (touch.isPressed()){
                     vertical.setPower(0);
                 } else {
-                    if (vertical.getCurrentPosition() > -200){
+                    if (vertical.getCurrentPosition() > -400){
                         vertical.setPower(0.5);
+                    } else if (vertical.getCurrentPosition() > -200) {
+                        vertical.setPower(0.3);
                     } else {
                         vertical.setPower(1);
                     }
