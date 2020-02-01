@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
@@ -33,7 +34,7 @@ import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocaliz
 public class BlueLoadingOp extends LinearOpMode {
     final double COUNTS_PER_INCH = 306.382254;
     final double BASE_POWER_VERTICAL = 0.3;
-    final double BASE_POWER_HORIZONTAL = 0.45;
+    final double BASE_POWER_HORIZONTAL = 0.55;
 
     private final double ARM_GRABBER_MAX_POS = 0.55;
     private final double SIDE_GRABBER_UP_POS = 0;
@@ -122,13 +123,13 @@ public class BlueLoadingOp extends LinearOpMode {
             // Activate Vuforia Skystone tracking
             targetsSkyStone.activate();
             //1. Move to about 10 inches in front of stone wall
-            double distance = distanceLeft.getDistance(DistanceUnit.INCH) - 9;
-            double targetX = -21.0;
-            if ((distance > 15.0) && (distance < Math.abs(targetX))) {
+            double distance = distanceLeft.getDistance(DistanceUnit.INCH) - 8;
+            double targetX = -20.0;
+            if ((distance > 17.0) && (distance < Math.abs(targetX))) {
                 targetX = distance * -1;
             }
 
-            navigator.goToPosition(targetX, 0, BASE_POWER_HORIZONTAL, 0, 0.5);
+            navigator.goToPosition(targetX, 0, BASE_POWER_HORIZONTAL + 0.15, 0, 1);
             navigator.stop();
 
             //2. Call getSkystoneLocation
@@ -148,21 +149,23 @@ public class BlueLoadingOp extends LinearOpMode {
             double raw = 0.0;
 
             if (skystoneLocation == SkystoneLocation.FIRST) {
-                offset = Math.abs(yValue) / mmPerInch - 4.0;
+                offset = Math.abs(yValue) / mmPerInch - 3.0;
                 where = "FIRST";
                 raw = offset;
+                offset = Range.clip(raw, -1.0, 0);
                 yDistanceToNextStone = 23.0;
                 telemetry.addData("Skystone Located", "FIRST");
                 nextYTarget = getFirstStoneRoutine(offset, yDistanceToNextStone);
             } else if (skystoneLocation == SkystoneLocation.SECOND) {
-                offset = Math.abs(yValue) / mmPerInch + 3.0;
+                offset = Math.abs(yValue) / mmPerInch + 4.0;
                 yDistanceToNextStone = 23.0;
                 telemetry.addData("Skystone Located", "SECOND");
                 where = "SECOND";
                 raw = offset;
+                offset = Range.clip(raw, 7.0, 9.0);
                 nextYTarget = getFirstStoneRoutine(offset, yDistanceToNextStone);
             } else {
-                offset = 12.0;
+                offset = 15.0;
                 yDistanceToNextStone = 8.0;
                 telemetry.addData("Skystone Located", "THIRD");
                 where = "THIRD";
@@ -246,8 +249,8 @@ public class BlueLoadingOp extends LinearOpMode {
 
     private void initiateVuforia() {
         // TODO - set 'cameraMonitorViewId' to zero to disable camera monitoring
-        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters(cameraMonitorViewId);
+        //int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+        VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters(0);
         parameters.vuforiaLicenseKey = VUFORIA_KEY;
         parameters.cameraDirection = CAMERA_CHOICE;
         vuforia = ClassFactory.getInstance().createVuforia(parameters);

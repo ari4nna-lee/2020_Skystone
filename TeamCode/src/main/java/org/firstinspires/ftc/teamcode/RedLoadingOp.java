@@ -34,7 +34,7 @@ import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocaliz
 public class RedLoadingOp extends LinearOpMode {
     final double COUNTS_PER_INCH = 306.382254;
     final double BASE_POWER_VERTICAL = 0.3;
-    final double BASE_POWER_HORIZONTAL = 0.45;
+    final double BASE_POWER_HORIZONTAL = 0.55;
 
     private final double ARM_GRABBER_MAX_POS = 0.55;
     private final double SIDE_GRABBER_UP_POS = 0;
@@ -124,12 +124,13 @@ public class RedLoadingOp extends LinearOpMode {
             // Activate Vuforia Skystone tracking
             targetsSkyStone.activate();
             //1. Move to about 10 inches in front of stone wall
-            double distance = distanceLeft.getDistance(DistanceUnit.INCH) - 7;
+            double distance = distanceLeft.getDistance(DistanceUnit.INCH) - 8;
             double targetX = -20.0;
-            if ((distance > 15.0) && (distance < Math.abs(targetX))) {
+            if ((distance > 17.0) && (distance < Math.abs(targetX))) {
                 targetX = distance * -1;
             }
-            navigator.goToPosition(targetX, 0, BASE_POWER_HORIZONTAL, 0, 1);
+            navigator.goToPosition(targetX, 0, BASE_POWER_HORIZONTAL + 0.15, 0, 1);
+            sleep(1000);
             navigator.stop();
 
             //2. Call getSkystoneLocation
@@ -153,24 +154,24 @@ public class RedLoadingOp extends LinearOpMode {
 
             if (skystoneLocation == SkystoneLocation.FIRST) {
                 where = "FIRST";
-                offset = (Math.abs(yValue) / mmPerInch + 3.0) * -1;
+                offset = (Math.abs(yValue) / mmPerInch + 1.5) * -1;
                 raw = offset;
-                offset = Range.clip(offset, -7.0, -5.0);
-                yDistanceToNextStone = 24.0;
+                offset = Range.clip(offset, -5.0, -3.0);
+                yDistanceToNextStone = 23.5;
                 nextYTarget = getFirstStoneRoutine(offset, yDistanceToNextStone);
 
             } else if (skystoneLocation == SkystoneLocation.SECOND) {
                 // do 2nd
                 where = "SECOND";
-                offset = Math.abs(yValue) /mmPerInch - 1.0;
+                offset = Math.abs(yValue) /mmPerInch - 2;
                 raw = offset;
                 offset = Range.clip(offset, 1.0, 2.0);
-                yDistanceToNextStone = 24.0;
+                yDistanceToNextStone = 23.5;
                 nextYTarget = getFirstStoneRoutine(offset, yDistanceToNextStone);
             } else {
                 // do 3rd routine
                 where = "THIRD";
-                offset = 8.0;
+                offset = 7.5;
                 yDistanceToNextStone = 8.0;
                 nextYTarget = getFirstStoneRoutine(offset, yDistanceToNextStone);
             }
@@ -217,8 +218,8 @@ public class RedLoadingOp extends LinearOpMode {
 
     private void initiateVuforia() {
         // TODO - set 'cameraMonitorViewId' to zero to disable camera monitoring
-        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters(cameraMonitorViewId);
+        //int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+        VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters(0);
         parameters.vuforiaLicenseKey = VUFORIA_KEY;
         parameters.cameraDirection = CAMERA_CHOICE;
         vuforia = ClassFactory.getInstance().createVuforia(parameters);
@@ -263,7 +264,7 @@ public class RedLoadingOp extends LinearOpMode {
         sleep(500);
         navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH - 1, BASE_POWER_VERTICAL, 0, 0.5);
         navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH + 10, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, BASE_POWER_HORIZONTAL, 0, 1);
-        navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, -42, BASE_POWER_VERTICAL, 0, 1);
+        navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, -40, BASE_POWER_VERTICAL, 0, 1);
         sideGrabber.setPosition(0);
         sleep(500);
     }
