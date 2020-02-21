@@ -22,7 +22,7 @@ public class SkyTeleOp extends LinearOpMode {
     private final double PUSH_POS_UP = 1.0;
     private final double PUSH_POS_DOWN = 0;
 
-    private final double SIDE_GRABBER_UP_POS = 0;
+    private final double FRONT_GRABBER_UP_POS = 0.2;
 
     private final double HOOK_POS_UP = 1.0;
     private final double HOOK_POS_DOWN = 0;
@@ -41,7 +41,10 @@ public class SkyTeleOp extends LinearOpMode {
     private DcMotor vertical;
     private Servo armGrabber;
     private Servo push;
-    private Servo sideGrabber;
+    private Servo frontGrabber;
+    private Servo frontSwing;
+    private Servo backGrabber;
+    private Servo backSwing;
     private Servo capstone;
     private TouchSensor touch;
 
@@ -63,14 +66,20 @@ public class SkyTeleOp extends LinearOpMode {
         extend = hardwareMap.dcMotor.get("extend");
         push = hardwareMap.servo.get("push");
         armGrabber = hardwareMap.servo.get("armGrabber");
-        sideGrabber = hardwareMap.servo.get("sideGrabber");
+        frontGrabber = hardwareMap.servo.get("frontGrabber");
+        frontSwing = hardwareMap.servo.get("frontSwing");
+        backGrabber = hardwareMap.servo.get("backGrabber");
+        backSwing = hardwareMap.servo.get("backSwing");
         capstone = hardwareMap.servo.get("capstone");
         touch = hardwareMap.touchSensor.get("switch");
 
         // Put initialization blocks here.
         // Set the armgrabber and pitch positions so it's within the box
         armGrabber.setPosition(ARM_GRABBER_MAX_POS);
-        sideGrabber.setPosition(SIDE_GRABBER_UP_POS);
+        frontSwing.setPosition(FRONT_GRABBER_UP_POS);
+        backSwing.setPosition(0.2);
+        frontGrabber.setPosition(0);
+        backGrabber.setPosition(0);
         capstone.setPosition(CAPSTONE_MIN_POS);
 
         waitForStart();
@@ -94,24 +103,20 @@ public class SkyTeleOp extends LinearOpMode {
 
         extend.setDirection(DcMotorSimple.Direction.FORWARD);
         hookLeft.setDirection(Servo.Direction.REVERSE);
-        extend.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        //extend.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         vertical.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         vertical.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         // Put run blocks here.
         // armGrabber.setPosition(ARM_GRABBER_RESET_POS);
         push.setPosition(PUSH_POS_UP);
-        sideGrabber.setPosition(SIDE_GRABBER_UP_POS);
+        frontGrabber.setPosition(FRONT_GRABBER_UP_POS);
+        //double rawY = gamepad1.left_stick_y;
+
 
         while (opModeIsActive() || !isStopRequested()) {
 
-            // By default using Mecanum drive control
-            // Holding Gamepad1 'Start' button to use Tank Drive mode
-            if (gamepad1.start) {
-                tankDrive();
-            } else {
-                mecanumDrive();
-            }
+            mecanumDrive();
 
             //Intake System
             if (gamepad1.left_bumper) {
@@ -163,6 +168,12 @@ public class SkyTeleOp extends LinearOpMode {
                 hookLeft.setPosition(HOOK_POS_DOWN);
                 hookRight.setPosition(HOOK_POS_DOWN);
             }
+            if (gamepad1.x) {
+                leftFront.setPower(0.5);
+                leftBack.setPower(0.5);
+                rightFront.setPower(0.5);
+                rightBack.setPower(0.5);
+            }
 
             if (gamepad2.dpad_up) {
                 if (capstone.getPosition() != CAPSTONE_MAX_POS) {
@@ -206,7 +217,14 @@ public class SkyTeleOp extends LinearOpMode {
 
     // Mecanum Drive
     private void mecanumDrive() {
-        float rawX = gamepad1.left_stick_x;
+        double rawX = gamepad1.left_stick_x *-1;
+        double rawY = gamepad1.left_stick_y;
+
+        if (gamepad1.start) {
+            rawX = rawX * 0.5;
+            rawY =  rawY * 0.5;
+        }
+        
         float rawLeftTrigger = gamepad1.right_trigger;
         float rawRightTrigger = gamepad1.left_trigger;
         if (rawLeftTrigger > 0) {
@@ -216,8 +234,8 @@ public class SkyTeleOp extends LinearOpMode {
             rawX = rawRightTrigger * -1;
         }
 
-        double r = Math.hypot(rawX, gamepad1.left_stick_y * -1);
-        double robotAngle = Math.atan2(gamepad1.left_stick_y * -1, rawX) - Math.PI / 4;
+        double r = Math.hypot(rawX, rawY * 1);
+        double robotAngle = Math.atan2(rawY * 1, rawX) - Math.PI / 4;
         double rightX = gamepad1.right_stick_x;
 
         double lFront = (r * Math.cos(robotAngle) + rightX) * POWER_MULTIPLIER;
