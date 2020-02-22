@@ -217,7 +217,7 @@ public class SkyTeleOp extends LinearOpMode {
 
     // Mecanum Drive
     private void mecanumDrive() {
-        double rawX = gamepad1.left_stick_x *-1;
+        double rawX = gamepad1.left_stick_x;
         double rawY = gamepad1.left_stick_y;
 
         if (gamepad1.start) {
@@ -234,8 +234,8 @@ public class SkyTeleOp extends LinearOpMode {
             rawX = rawRightTrigger * -1;
         }
 
-        double r = Math.hypot(rawX, rawY * 1);
-        double robotAngle = Math.atan2(rawY * 1, rawX) - Math.PI / 4;
+        double r = Math.hypot(rawX, rawY * -1);
+        double robotAngle = Math.atan2(rawY * -1, rawX) - Math.PI / 4;
         double rightX = gamepad1.right_stick_x;
 
         double lFront = (r * Math.cos(robotAngle) + rightX) * POWER_MULTIPLIER;
