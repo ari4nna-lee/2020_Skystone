@@ -5,42 +5,31 @@ import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.teamcode.drivetrain.Navigator;
-import org.firstinspires.ftc.teamcode.odometry.OdometryGlobalCoordinatePosition;
 
 @Autonomous(name = "ParkFoundation Op", group = "")
 @Disabled
 public class ParkFoundationOp extends LinearOpMode {
     final double COUNTS_PER_INCH = 306.382254;
-    final double BASE_POWER_VERTICAL = 0.3;
-    final double BASE_POWER_HORIZONTAL = 0.55;
-    final double ROTATION_MOTOR_POWER = 0.8;
 
     private final double HOOK_POS_UP = 1.0;
-    private final double HOOK_POS_DOWN = 0.25;
-    private final double HOOK_LOCK = 0;
 
     private final double ARM_GRABBER_MAX_POS = 0.55;
-    private final double SIDE_GRABBER_UP_POS = 0;
     private final double CAPSTONE_MIN_POS = 0.33;
-
-    OdometryGlobalCoordinatePosition globalPositionUpdate;
 
     private DcMotor rightFront;
     private DcMotor rightBack;
     private DcMotor leftFront;
     private DcMotor leftBack;
-    private DistanceSensor distanceFront;
-    private DistanceSensor distanceBack;
     private Servo hookLeft;
     private Servo hookRight;
-    private Servo sideGrabber;
     private Servo armGrabber;
     private Servo capstone;
+    private Servo frontSwing;
+    private Servo backSwing;
+    private Servo frontGrabber;
+    private Servo backGrabber;
 
     @Override
     public void runOpMode() {
@@ -52,51 +41,50 @@ public class ParkFoundationOp extends LinearOpMode {
         hookLeft = hardwareMap.servo.get("hookLeft");
         hookRight = hardwareMap.servo.get("hookRight");
         armGrabber = hardwareMap.servo.get("armGrabber");
-        sideGrabber = hardwareMap.servo.get("sideGrabber");
         capstone = hardwareMap.servo.get("capstone");
-        distanceFront = hardwareMap.get(DistanceSensor.class, "distanceFront");
-        distanceBack = hardwareMap.get(DistanceSensor.class, "distanceBack");
+        frontSwing = hardwareMap.servo.get("frontSwing");
+        backSwing = hardwareMap.servo.get("backSwing");
+        frontGrabber = hardwareMap.servo.get("frontGrabber");
+        backGrabber = hardwareMap.servo.get("backGrabber");
         rightFront.setDirection(DcMotorSimple.Direction.REVERSE);
         rightBack.setDirection(DcMotorSimple.Direction.REVERSE);
         hookLeft.setDirection(Servo.Direction.REVERSE);
+        leftFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rightFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        leftFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rightFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        hookLeft.setPosition(HOOK_LOCK);
-        hookRight.setPosition(HOOK_LOCK);
-        sideGrabber.setPosition(0);
+        hookLeft.setPosition(HOOK_POS_UP);
+        hookRight.setPosition(HOOK_POS_UP);
 
         armGrabber.setPosition(ARM_GRABBER_MAX_POS);
-        sideGrabber.setPosition(SIDE_GRABBER_UP_POS);
         capstone.setPosition(CAPSTONE_MIN_POS);
+
+        frontSwing.setPosition(0);
+        backSwing.setPosition(0);
+        frontGrabber.setPosition(0);
+        backGrabber.setPosition(0);
 
         waitForStart();
 
-        // create robot Navigator
-        Navigator navigator = new Navigator(this);
-        // start GlobalCoordinatePosition thread to constantly update the global coordinate positions
-        globalPositionUpdate = navigator.getGlobalPositionRunnable();
-        Thread positionThread = new Thread(globalPositionUpdate);
-        positionThread.start();
-
         if (opModeIsActive()) {
-            hookLeft.setPosition(HOOK_POS_UP);
-            hookRight.setPosition(HOOK_POS_UP);
 
-            sleep(25000);
-            navigator.goToPosition(0, 28, BASE_POWER_VERTICAL, 0, 1);
-
-            navigator.stop();
-
-            while (opModeIsActive()) {
-                //Display Global (x, y, theta) coordinates
-                telemetry.addData("X Position", globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH);
-                telemetry.addData("Y Position", globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH);
-                telemetry.addData("Orientation (Degrees)", globalPositionUpdate.returnOrientation());
-
-                telemetry.addData("Thread Active", positionThread.isAlive());
+            while (!(leftFront.getCurrentPosition() <= -4320 || rightFront.getCurrentPosition() <= -4320)) {
+                sleep(24000);
+                leftFront.setPower(0.2);
+                leftBack.setPower(0.2);
+                rightFront.setPower(0.2);
+                rightBack.setPower(0.2);
+                telemetry.addData("left encoder", leftFront.getCurrentPosition());
+                telemetry.addData("right encoder", rightFront.getCurrentPosition());
                 telemetry.update();
             }
+            leftFront.setPower(0);
+            leftBack.setPower(0);
+            rightFront.setPower(0);
+            rightBack.setPower(0);
         }
-        globalPositionUpdate.stop();
+
     }
 }
 
