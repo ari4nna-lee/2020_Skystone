@@ -87,8 +87,8 @@ public class RedFoundationOp extends LinearOpMode {
 
         if (opModeIsActive()) {
 
-            navigator.goToPosition(-17, 0, BASE_POWER_HORIZONTAL, 0, 1);
-            navigator.goToPosition(-17, -22, BASE_POWER_VERTICAL, 0, 1);
+            navigator.goToPosition(-14, 0, BASE_POWER_HORIZONTAL, 0, 1);
+            navigator.goToPosition(-14, -22, BASE_POWER_VERTICAL, 0, 1);
 
             navigator.stop();
             sleep(500);
@@ -98,7 +98,7 @@ public class RedFoundationOp extends LinearOpMode {
             }
             double distance = (31 - m);
 
-            navigator.goToPosition(-17, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH - distance, BASE_POWER_VERTICAL, 0, 1);
+            navigator.goToPosition(-14, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH - distance, BASE_POWER_VERTICAL, 0, 1);
             hookLeft.setPosition(HOOK_POS_DOWN);
             hookRight.setPosition(HOOK_POS_DOWN);
 
@@ -107,7 +107,7 @@ public class RedFoundationOp extends LinearOpMode {
             navigator.tankDrive(1.0, 0.4, 1000);
             navigator.pivotToOrientation(90, ROTATION_MOTOR_POWER, 5);
 
-            //navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH + 4, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, BASE_POWER_VERTICAL + 0.2, 90, 1);
+            navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH - 4, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, BASE_POWER_VERTICAL + 0.2, 90, 1);
 
             hookLeft.setPosition(HOOK_POS_UP);
             hookRight.setPosition(HOOK_POS_UP);
