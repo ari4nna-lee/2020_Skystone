@@ -34,9 +34,13 @@ public class BlueFoundationOp extends LinearOpMode {
     private DcMotor leftBack;
     private DistanceSensor distanceFront;
     private DistanceSensor distanceBack;
+    private DistanceSensor distanceRight;
     private Servo hookLeft;
     private Servo hookRight;
-    private Servo sideGrabber;
+    private Servo frontSwing;
+    private Servo frontGrabber;
+    private Servo backSwing;
+    private Servo backGrabber;
     private Servo armGrabber;
     private Servo capstone;
 
@@ -50,20 +54,26 @@ public class BlueFoundationOp extends LinearOpMode {
         hookLeft = hardwareMap.servo.get("hookLeft");
         hookRight = hardwareMap.servo.get("hookRight");
         armGrabber = hardwareMap.servo.get("armGrabber");
-        sideGrabber = hardwareMap.servo.get("sideGrabber");
+        frontSwing = hardwareMap.servo.get("frontSwing");
+        frontGrabber = hardwareMap.servo.get("frontGrabber");
+        backSwing = hardwareMap.servo.get("backSwing");
+        backGrabber = hardwareMap.servo.get("backGrabber");
         capstone = hardwareMap.servo.get("capstone");
         distanceFront = hardwareMap.get(DistanceSensor.class, "distanceFront");
         distanceBack = hardwareMap.get(DistanceSensor.class, "distanceBack");
+        distanceRight = hardwareMap.get(DistanceSensor.class, "distanceRight");
         rightFront.setDirection(DcMotorSimple.Direction.REVERSE);
         rightBack.setDirection(DcMotorSimple.Direction.REVERSE);
         hookLeft.setDirection(Servo.Direction.REVERSE);
 
-        hookLeft.setPosition(HOOK_LOCK);
-        hookRight.setPosition(HOOK_LOCK);
-        sideGrabber.setPosition(0);
+        hookLeft.setPosition(HOOK_POS_UP);
+        hookRight.setPosition(HOOK_POS_UP);
+        frontSwing.setPosition(0);
+        frontGrabber.setPosition(0);
+        backSwing.setPosition(0);
+        backGrabber.setPosition(0);
 
         armGrabber.setPosition(ARM_GRABBER_MAX_POS);
-        sideGrabber.setPosition(SIDE_GRABBER_UP_POS);
         capstone.setPosition(CAPSTONE_MIN_POS);
 
         waitForStart();
@@ -76,32 +86,34 @@ public class BlueFoundationOp extends LinearOpMode {
         positionThread.start();
 
         if (opModeIsActive()) {
-            hookLeft.setPosition(HOOK_POS_UP);
-            hookRight.setPosition(HOOK_POS_UP);
 
-            navigator.goToPosition(-17, 0, BASE_POWER_HORIZONTAL, 0, 1);
-            navigator.goToPosition(-17, 22, BASE_POWER_VERTICAL, 0, 1);
+            navigator.goToPosition(14, 0, BASE_POWER_HORIZONTAL, 0, 1);
+            navigator.goToPosition(14, -22, BASE_POWER_VERTICAL, 0, 1);
             navigator.stop();
             sleep(500);
             double m = distanceFront.getDistance(DistanceUnit.INCH);
-            if (m > 10) {
-                m = 10;
+            if (m > 22) {
+                m = 22;
             }
-            double distance = (m - 4);
+            double distance = (31 - m);
 
-            navigator.goToPosition(-17, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH + distance, BASE_POWER_VERTICAL, 0, 1);
+            navigator.goToPosition(14, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH - distance, BASE_POWER_VERTICAL, 0, 1);
             hookLeft.setPosition(HOOK_POS_DOWN);
             hookRight.setPosition(HOOK_POS_DOWN);
             sleep(500);
 
-            navigator.tankDrive(-1.0, -0.4, 1000);
+            navigator.tankDrive(0.4, 1.0, 1000);
             navigator.pivotToOrientation(-90, ROTATION_MOTOR_POWER, 5);
 
             hookLeft.setPosition(HOOK_POS_UP);
             hookRight.setPosition(HOOK_POS_UP);
+            sleep(500);
 
-            navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH - 7, BASE_POWER_HORIZONTAL, -90, 0.5);
-            navigator.goToPosition(28, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, BASE_POWER_HORIZONTAL, -90, 1);
+            double l = (distanceRight.getDistance(DistanceUnit.INCH) - 2);
+
+            navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH + 4, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, BASE_POWER_HORIZONTAL, -90, 1);
+            navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH + l, BASE_POWER_HORIZONTAL, -90, 0.5);
+            navigator.goToPosition(-28, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, BASE_POWER_HORIZONTAL, -90, 1);
 
             navigator.stop();
 
@@ -110,6 +122,7 @@ public class BlueFoundationOp extends LinearOpMode {
                 telemetry.addData("X Position", globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH);
                 telemetry.addData("Y Position", globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH);
                 telemetry.addData("Orientation (Degrees)", globalPositionUpdate.returnOrientation());
+                telemetry.addData("DistanceRight", distanceRight.getDistance(DistanceUnit.INCH));
 
                 telemetry.addData("Thread Active", positionThread.isAlive());
                 telemetry.update();
