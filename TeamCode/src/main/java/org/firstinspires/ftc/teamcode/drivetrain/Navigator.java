@@ -47,11 +47,11 @@ public class Navigator {
      * Go to a location in the field
      * @param targetX X coordinate in inches
      * @param targetY Y coordinate in inches
-     * @param robotPower desired motor power for the wheels
+     * @param basePower base motor power for the wheels
      * @param desiredRobotOrientation desired robot orientation
      * @param allowableDistanceError allowable distance error in inches
      */
-    public void goToPosition(double targetX, double targetY, double robotPower, double desiredRobotOrientation, double allowableDistanceError) {
+    public void goToPosition(double targetX, double targetY, double basePower, double desiredRobotOrientation, double allowableDistanceError) {
         double targetXPosition = targetX * COUNTS_PER_INCH;
         double targetYPosition = targetY * COUNTS_PER_INCH;
         double tolerance = allowableDistanceError * COUNTS_PER_INCH;
@@ -60,17 +60,27 @@ public class Navigator {
         double distanceToYTarget = targetYPosition - globalPositionUpdate.returnYCoordinate();
 
         double distance = Math.hypot(distanceToXTarget, distanceToYTarget);
+        double curDistance = distance;
 
-        while (opMode.opModeIsActive() && !opMode.isStopRequested() && (distance > tolerance)) {
+        PIDController pidController = new PIDController(0.00007, 0, 0);
+        pidController.setSetpoint(distance);
+        pidController.setInputRange(0, distance);
+        pidController.setOutputRange(0, 0.4);
+        pidController.setTolerance(allowableDistanceError);
+        pidController.enable();
+
+        while (opMode.opModeIsActive() && !opMode.isStopRequested() && (curDistance > tolerance)) {
             distanceToXTarget = targetXPosition - globalPositionUpdate.returnXCoordinate();
             distanceToYTarget = targetYPosition - globalPositionUpdate.returnYCoordinate();
 
-            distance = Math.hypot(distanceToXTarget, distanceToYTarget);
+            curDistance = Math.hypot(distanceToXTarget, distanceToYTarget);
 
             double robotMovementAngle = Math.toDegrees(Math.atan2(distanceToXTarget, distanceToYTarget)) - globalPositionUpdate.returnOrientation();
 
-            double robotMovementXComponent = calculateX(robotMovementAngle, robotPower);
-            double robotMovementYComponent = calculateY(robotMovementAngle, robotPower);
+            double speedCorrection = pidController.performPID(distance - curDistance);
+
+            double robotMovementXComponent = calculateX(robotMovementAngle, basePower + speedCorrection);
+            double robotMovementYComponent = calculateY(robotMovementAngle, basePower + speedCorrection);
             double pivotCorrection = desiredRobotOrientation - globalPositionUpdate.returnOrientation();
 
 
@@ -155,7 +165,7 @@ public class Navigator {
     private void drive(double y, double x, double rot) {
         double r = Math.hypot(x, y);
         double robotAngle = Math.atan2(y, x) - Math.PI / 4;
-        double rightX = Range.clip(rot / 50.0, -0.4, 0.4);
+        double rightX = Range.clip(rot / 30.0, -0.4, 0.4);
 
         telemetry.addData("RAW Rot", rot);
         telemetry.addData("Control rightX", rightX);
