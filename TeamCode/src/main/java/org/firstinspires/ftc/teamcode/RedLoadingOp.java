@@ -38,7 +38,6 @@ public class RedLoadingOp extends LinearOpMode {
 
     private final double ARM_GRABBER_MAX_POS = 0.55;
     private final double SIDE_GRABBER_UP_POS = 0;
-    private final double CAPSTONE_MIN_POS = 0.33;
 
     private OdometryGlobalCoordinatePosition globalPositionUpdate;
 
@@ -88,9 +87,11 @@ public class RedLoadingOp extends LinearOpMode {
     private DcMotor leftFront;
     private DcMotor leftBack;
     private DistanceSensor distanceFront;
-    private Servo sideGrabber;
+    private Servo frontSwing;
+    private Servo frontGrabber;
+    private Servo backSwing;
+    private Servo backGrabber;
     private Servo armGrabber;
-    private Servo capstone;
     private Servo hookLeft;
     private Servo hookRight;
     private DistanceSensor distanceLeft;
@@ -101,13 +102,14 @@ public class RedLoadingOp extends LinearOpMode {
         initDriveHardwareMap();
         initiateVuforia();
 
-        hookLeft.setPosition(0);
-        hookRight.setPosition(0);
-        sideGrabber.setPosition(0);
+        frontSwing.setPosition(0);
+        frontGrabber.setPosition(0);
+        backSwing.setPosition(0);
+        backGrabber.setPosition(0);
+        hookLeft.setPosition(1);
+        hookRight.setPosition(1);
 
         armGrabber.setPosition(ARM_GRABBER_MAX_POS);
-        sideGrabber.setPosition(SIDE_GRABBER_UP_POS);
-        capstone.setPosition(CAPSTONE_MIN_POS);
 
         //TODO initiate arm/pitch servo
 
@@ -123,14 +125,16 @@ public class RedLoadingOp extends LinearOpMode {
         if (opModeIsActive()) {
             // Activate Vuforia Skystone tracking
             targetsSkyStone.activate();
+            com.vuforia.CameraDevice.getInstance().setFlashTorchMode(true);
+            com.vuforia.CameraDevice.getInstance().setField("opt1-zoom", "opt1-zoom-on");
+            com.vuforia.CameraDevice.getInstance().setField("zoom", "30");
             //1. Move to about 10 inches in front of stone wall
             double distance = distanceLeft.getDistance(DistanceUnit.INCH) - 8;
             double targetX = -20.0;
             if ((distance > 17.0) && (distance < Math.abs(targetX))) {
                 targetX = distance * -1;
             }
-            navigator.goToPosition(targetX, 0, BASE_POWER_HORIZONTAL + 0.15, 0, 1);
-            sleep(1000);
+
             navigator.stop();
 
             //2. Call getSkystoneLocation
@@ -143,7 +147,6 @@ public class RedLoadingOp extends LinearOpMode {
             double nextYTarget = 0.0;
             SkystoneLocation skystoneLocation = getSkystoneLocation(yValue);
             telemetry.addData("Initial distance", distance);
-            telemetry.addData("Initial Target X", targetX);
             telemetry.addData("Y value", yValue);
             telemetry.addData("Y POS", globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH);
             telemetry.addData("Time needed in ms", elapsedTime.milliseconds());
@@ -153,33 +156,33 @@ public class RedLoadingOp extends LinearOpMode {
             double raw = 0.0;
 
             if (skystoneLocation == SkystoneLocation.FIRST) {
+                offset = 2;
                 where = "FIRST";
-                offset = (Math.abs(yValue) / mmPerInch + 1.5) * -1;
-                raw = offset;
-                offset = Range.clip(offset, -5.0, -3.0);
-                yDistanceToNextStone = 23.5;
-                nextYTarget = getFirstStoneRoutine(offset, yDistanceToNextStone);
-
+                yDistanceToNextStone = 22.0;
+                telemetry.addData("Skystone Located", "FIRST");
+                nextYTarget = getFirstStoneRoutine(offset, backSwing, backGrabber, yDistanceToNextStone);
+                getNextStoneRoutine(nextYTarget, backSwing, backGrabber);
             } else if (skystoneLocation == SkystoneLocation.SECOND) {
                 // do 2nd
                 where = "SECOND";
-                offset = Math.abs(yValue) /mmPerInch - 2;
-                raw = offset;
-                offset = Range.clip(offset, 1.0, 2.0);
-                yDistanceToNextStone = 23.5;
-                nextYTarget = getFirstStoneRoutine(offset, yDistanceToNextStone);
+                offset = 0;
+                yDistanceToNextStone = 22.0;
+                telemetry.addData("Skystone Located", "SECOND");
+                nextYTarget = getFirstStoneRoutine(offset, frontSwing, frontGrabber, yDistanceToNextStone);
+                getNextStoneRoutine(nextYTarget, frontSwing, frontGrabber);
             } else {
                 // do 3rd routine
                 where = "THIRD";
-                offset = 7.5;
-                yDistanceToNextStone = 8.0;
-                nextYTarget = getFirstStoneRoutine(offset, yDistanceToNextStone);
+                offset = 6.0;
+                yDistanceToNextStone = 22.0;
+                raw = offset;
+                nextYTarget = getFirstStoneRoutine(offset, frontSwing, frontGrabber, yDistanceToNextStone);
+                getNextStoneRoutine(nextYTarget, frontSwing, frontGrabber);
             }
 
             telemetry.addData("Skystone", where);
             telemetry.addData("RAW OFFSET", raw);
             telemetry.addData("CLIP OFFSET", offset);
-            getNextStoneRoutine(nextYTarget);
             telemetry.update();
 
             while (opModeIsActive()) {
@@ -199,13 +202,14 @@ public class RedLoadingOp extends LinearOpMode {
         rightBack = hardwareMap.dcMotor.get("rightBack");
         leftFront = hardwareMap.dcMotor.get("leftFront");
         leftBack = hardwareMap.dcMotor.get("leftBack");
-        sideGrabber = hardwareMap.servo.get("sideGrabber");
         hookLeft = hardwareMap.servo.get("hookLeft");
         hookRight = hardwareMap.servo.get("hookRight");
         hookLeft.setDirection(Servo.Direction.REVERSE);
         armGrabber = hardwareMap.servo.get("armGrabber");
-        sideGrabber = hardwareMap.servo.get("sideGrabber");
-        capstone = hardwareMap.servo.get("capstone");
+        frontSwing = hardwareMap.servo.get("frontSwing");
+        frontGrabber = hardwareMap.servo.get("frontGrabber");
+        backSwing = hardwareMap.servo.get("backSwing");
+        backGrabber = hardwareMap.servo.get("backGrabber");
         distanceFront = hardwareMap.get(DistanceSensor.class, "distanceFront");
         distanceLeft = hardwareMap.get(DistanceSensor.class, "distanceLeft");
         distanceBack = hardwareMap.get(DistanceSensor.class, "distanceBack");
@@ -218,8 +222,8 @@ public class RedLoadingOp extends LinearOpMode {
 
     private void initiateVuforia() {
         // TODO - set 'cameraMonitorViewId' to zero to disable camera monitoring
-        //int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters(0);
+        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+        VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters(cameraMonitorViewId);
         parameters.vuforiaLicenseKey = VUFORIA_KEY;
         parameters.cameraDirection = CAMERA_CHOICE;
         vuforia = ClassFactory.getInstance().createVuforia(parameters);
@@ -259,50 +263,58 @@ public class RedLoadingOp extends LinearOpMode {
     }
 
 
-    private void grabAndMoveStone() {
-        sideGrabber.setPosition(1);
+    private void grabAndMoveStone(Servo swing, Servo grabber) {
+        navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH + 5, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, BASE_POWER_HORIZONTAL, 0, 1);
+        navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, -44, BASE_POWER_VERTICAL, 0, 1);
+        //Release
+        swing.setPosition(0.8);
+        grabber.setPosition(1);
         sleep(500);
-        navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH - 1, BASE_POWER_VERTICAL, 0, 0.5);
-        navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH + 10, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, BASE_POWER_HORIZONTAL, 0, 1);
-        navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, -40, BASE_POWER_VERTICAL, 0, 1);
-        sideGrabber.setPosition(0);
-        sleep(500);
+        swing.setPosition(0.2);
+        grabber.setPosition(0);
     }
 
-    private double getFirstStoneRoutine(double offset, double yDistanceToNextStone) {
-        // move slowly
-        navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH,
-                globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH + offset, BASE_POWER_HORIZONTAL,0, 1);
+    private double getFirstStoneRoutine(double offset, Servo swing, Servo grabber, double yDistanceToNextStone) {
+        // Move slowly
+        navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH + offset, 0.5, 0, 1);
+        swing.setPosition(0.6);
+        grabber.setPosition(1);
+        navigator.goToPosition(-23, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, BASE_POWER_HORIZONTAL + 0.15, 0, 1);
+        //Grab the first stone
+        swing.setPosition(0.8);
+        grabber.setPosition(0.4);
+        sleep(500);
+        swing.setPosition(0.2);
+        com.vuforia.CameraDevice.getInstance().setFlashTorchMode(false);
 
-        double distance = measureDistanceToTarget();
         double nextYTarget = globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH + yDistanceToNextStone;
-        navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH - distance, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, BASE_POWER_HORIZONTAL, 0, 1);
 
-        grabAndMoveStone();
+        grabAndMoveStone(swing, grabber);
         return nextYTarget;
     }
 
-    private void getNextStoneRoutine(double nextYTarget) {
-        //move forward to next Skystone
-        navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, nextYTarget, BASE_POWER_VERTICAL, 0, 1);
+    private void getNextStoneRoutine(double nextYTarget, Servo swing, Servo grabber) {
+        navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, nextYTarget, BASE_POWER_VERTICAL, 0, 1.5);
+        navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH + 6, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, BASE_POWER_HORIZONTAL, 0, 1);
         navigator.stop();
-
+        swing.setPosition(0.6);
+        grabber.setPosition(1);
         double distance = measureDistanceToTarget();
-        navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH - distance, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, BASE_POWER_HORIZONTAL, 0, 1);
+        navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH - distance, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, 0.5, 0, 1);
         navigator.stop();
+        swing.setPosition(0.8);
+        grabber.setPosition(0.4);
+        sleep(500);
+        swing.setPosition(0.2);
+        grabAndMoveStone(swing, grabber);
 
-        grabAndMoveStone();
-
-        // park under the bridge
-        navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH -2, -35, BASE_POWER_VERTICAL + 0.1, 0, 1);
-
-        navigator.stop();
+        navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH - 2, -32, BASE_POWER_VERTICAL + 0.1, 0, 1);
     }
 
     private double measureDistanceToTarget() {
         double distance = distanceLeft.getDistance(DistanceUnit.INCH) + 1;
         if (distance > 15) {
-            distance = 12.0;
+            distance = 15.0;
         }
         return distance;
     }
@@ -323,7 +335,7 @@ public class RedLoadingOp extends LinearOpMode {
         ElapsedTime elapsedTime = new ElapsedTime();
         boolean targetVisible = false;
 
-        while (!isStopRequested() &&  !targetVisible && (elapsedTime.milliseconds() < 2000)) {
+        while (!isStopRequested() &&  !targetVisible && (elapsedTime.milliseconds() < 500)) {
 
             // check all the trackable targets to see which one (if any) is visible.
             targetVisible = false;
