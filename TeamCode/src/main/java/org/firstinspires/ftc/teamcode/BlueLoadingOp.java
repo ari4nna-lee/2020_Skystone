@@ -197,7 +197,7 @@ public class BlueLoadingOp extends LinearOpMode {
     private void grabAndMoveStone(Servo swing, Servo grabber) {
         //Move under the bridge
         navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH + 5, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, BASE_POWER_HORIZONTAL, 0, 1);
-        navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, 36, BASE_POWER_VERTICAL, 0, 1);
+        navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, 44, BASE_POWER_VERTICAL, 0, 1);
         //Release
         swing.setPosition(0.8);
         grabber.setPosition(1);
@@ -211,7 +211,7 @@ public class BlueLoadingOp extends LinearOpMode {
         navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH + offset, 0.5, 0, 1);
         swing.setPosition(0.6);
         grabber.setPosition(1);
-        navigator.goToPosition(-23, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, BASE_POWER_HORIZONTAL + 0.15, 0, 1);
+        navigator.goToPosition(-24, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, BASE_POWER_HORIZONTAL + 0.15, 0, 1);
         //Grab the first stone
         swing.setPosition(0.8);
         grabber.setPosition(0.4);
@@ -310,8 +310,8 @@ public class BlueLoadingOp extends LinearOpMode {
 
     private double measureDistanceToTarget() {
         double distance = distanceLeft.getDistance(DistanceUnit.INCH) + 1;
-        if (distance > 15) {
-            distance = 15.0;
+        if (distance > 17) {
+            distance = 17.0;
         }
         return distance;
     }
