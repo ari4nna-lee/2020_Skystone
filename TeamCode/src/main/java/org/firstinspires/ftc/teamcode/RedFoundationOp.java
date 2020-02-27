@@ -24,7 +24,6 @@ public class RedFoundationOp extends LinearOpMode {
 
     private final double ARM_GRABBER_MAX_POS = 0.55;
     private final double SIDE_GRABBER_UP_POS = 0;
-    private final double CAPSTONE_MIN_POS = 0.33;
 
     OdometryGlobalCoordinatePosition globalPositionUpdate;
 
@@ -42,7 +41,6 @@ public class RedFoundationOp extends LinearOpMode {
     private Servo backSwing;
     private Servo backGrabber;
     private Servo armGrabber;
-    private Servo capstone;
 
     @Override
     public void runOpMode() {
@@ -58,7 +56,6 @@ public class RedFoundationOp extends LinearOpMode {
         frontGrabber = hardwareMap.servo.get("frontGrabber");
         backSwing = hardwareMap.servo.get("backSwing");
         backGrabber = hardwareMap.servo.get("backGrabber");
-        capstone = hardwareMap.servo.get("capstone");
         distanceFront = hardwareMap.get(DistanceSensor.class, "distanceFront");
         distanceBack = hardwareMap.get(DistanceSensor.class, "distanceBack");
         distanceLeft = hardwareMap.get(DistanceSensor.class, "distanceLeft");
@@ -67,7 +64,6 @@ public class RedFoundationOp extends LinearOpMode {
         hookLeft.setDirection(Servo.Direction.REVERSE);
 
         armGrabber.setPosition(ARM_GRABBER_MAX_POS);
-        capstone.setPosition(CAPSTONE_MIN_POS);
         frontSwing.setPosition(0);
         frontGrabber.setPosition(0);
         backSwing.setPosition(0);

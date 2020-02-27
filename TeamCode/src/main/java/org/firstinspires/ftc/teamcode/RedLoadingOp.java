@@ -264,8 +264,8 @@ public class RedLoadingOp extends LinearOpMode {
 
 
     private void grabAndMoveStone(Servo swing, Servo grabber) {
-        navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH + 5, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, BASE_POWER_HORIZONTAL, 0, 1);
-        navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, -44, BASE_POWER_VERTICAL, 0, 1);
+        navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH + 4, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, BASE_POWER_HORIZONTAL, 0, 1);
+        navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, -44, BASE_POWER_VERTICAL + 0.15, 0, 1);
         //Release
         swing.setPosition(0.8);
         grabber.setPosition(1);
@@ -279,7 +279,7 @@ public class RedLoadingOp extends LinearOpMode {
         navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH + offset, 0.5, 0, 1);
         swing.setPosition(0.6);
         grabber.setPosition(1);
-        navigator.goToPosition(-23, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, BASE_POWER_HORIZONTAL + 0.15, 0, 1);
+        navigator.goToPosition(-24, globalPositionUpdate.returnYCoordinate() / COUNTS_PER_INCH, BASE_POWER_HORIZONTAL + 0.15, 0, 1);
         //Grab the first stone
         swing.setPosition(0.8);
         grabber.setPosition(0.4);
@@ -308,7 +308,7 @@ public class RedLoadingOp extends LinearOpMode {
         swing.setPosition(0.2);
         grabAndMoveStone(swing, grabber);
 
-        navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH - 2, -32, BASE_POWER_VERTICAL + 0.1, 0, 1);
+        navigator.goToPosition(globalPositionUpdate.returnXCoordinate() / COUNTS_PER_INCH - 2, -32, BASE_POWER_VERTICAL + 0.15, 0, 1);
     }
 
     private double measureDistanceToTarget() {
